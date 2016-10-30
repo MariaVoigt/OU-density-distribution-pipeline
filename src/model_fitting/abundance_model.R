@@ -34,17 +34,17 @@ print(paste("indir ", indir))
 outdir <- args[2]
 print(paste("outdir ", outdir))
 
-indir_fun <- args[3]
+indir_fun <- "../functions"
 print(paste("indir_fun", indir_fun))
 
 
 cl <- makeForkCluster(outfile = "")
 registerDoParallel(cl)
 
-source(file.path(indir_fun, "rogers_model_functions.R"))
-source(file.path(indir_fun, "path.to.current.R"))
-source(file.path(indir_fun, "aic_c_fac.r"))
-source(file.path(indir_fun, "get_conf_set.r"))
+source(file.path(indir_fun, "/roger_functions/rogers_model_functions.R"))
+source(file.path(indir_fun, "/generic/path.to.current.R"))
+source(file.path(indir_fun, "/roger_functions/aic_c_fac.r"))
+source(file.path(indir_fun, "/roger_functions/get_conf_set.r"))
 
 #define offset ground
 ESW <- 0.01595  #effective strip width in km
