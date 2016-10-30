@@ -4,7 +4,7 @@
 
 #$ -S /bin/bash
 
-#$ -l h_rt=720:00:00
+#$ -l h_rt=24:00:00
 #$ -l h_vmem=18G,highmem
 
 #$ -o /work/$USER/$JOB_NAME-$JOB_ID.log
@@ -37,7 +37,7 @@ mkdir $OUTPUT_PATH
 export MC_CORES=${NSLOTS:-1}
 
 Rscript \
-$HOME/model_and_predictions/abundance_model.R \
+$HOME/orangutan_density_distribution/src/model_fitting/abundance_model.R \
     $INPUT_PATH \
     $OUTPUT_PATH \
     $FUN_FILE
