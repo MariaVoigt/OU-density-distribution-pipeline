@@ -16,6 +16,8 @@
 
 #$ -m ea
 
+#$ -cwd
+
 module load R
 
 if [[ -z $1 ]] ; then
@@ -34,12 +36,12 @@ FUN_FILE=$2
 PRED_FILE=$3
 YEAR=$SGE_TASK_ID
 
-mkdir $OUTPUT_PATH
+mkdir -p $OUTPUT_PATH
 
 export MC_CORES=${NSLOTS:-1}
 
 Rscript \
-$HOME/predictions/abundance_prediction.R \
+    abundance_prediction.R \
     $INPUT_PATH \
     $OUTPUT_PATH \
     $FUN_FILE \
