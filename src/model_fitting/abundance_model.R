@@ -149,8 +149,7 @@ all_model_terms <- built.all.models(env.cov.names =
                                          "ou_killing_prediction",
                                         "perc_muslim"),
                                     env.cov.int = list(c("year", "road_dens"),
-                                                       c("year", "human_pop_dens"),
-                                                       ),
+                                                       c("year", "human_pop_dens")),
                                     env.cov.2 = c("temp_mean",
                                                   "rain_dry"))
 
