@@ -1,6 +1,6 @@
-#---------------------#
-# Fit abundance model #
-#---------------------#
+#--------------------------#
+# Fit abundance model      #
+#--------------------------#
 rm(list = ls())
 gc()
 
@@ -27,24 +27,25 @@ library(pscl)
 args <- commandArgs(trailingOnly = TRUE)
 print(paste("args", args))
 # the directory in which the files are
+
 indir <- args[1]
 # to check whether it is right (in log-script)
 print(paste("indir ", indir))
 # directory in which output is written
+
 outdir <- args[2]
 print(paste("outdir ", outdir))
 
 indir_fun <- "../functions"
 print(paste("indir_fun", indir_fun))
 
-
 cl <- makeForkCluster(outfile = "")
 registerDoParallel(cl)
 
-source(file.path(indir_fun, "/roger_functions/rogers_model_functions.R"))
-source(file.path(indir_fun, "/generic/path.to.current.R"))
-source(file.path(indir_fun, "/roger_functions/aic_c_fac.r"))
-source(file.path(indir_fun, "/roger_functions/get_conf_set.r"))
+source(file.path(indir_fun, "roger_functions/rogers_model_functions.R"))
+source(file.path(indir_fun, "generic/path.to.current.R"))
+source(file.path(indir_fun, "roger_functions/aic_c_fac.r"))
+source(file.path(indir_fun, "roger_functions/get_conf_set.r"))
 
 #define offset ground
 ESW <- 0.01595  #effective strip width in km
@@ -148,7 +149,7 @@ all_model_terms <- built.all.models(env.cov.names =
                                          "distance_PA",
                                          "human_pop_dens",
                                          "ou_killing_prediction",
-                                         "perc_muslim"),
+                                        "perc_muslim"),
                                     env.cov.int = list(c("year", "deforestation"),
                                                        c("year", "road_dens"),
                                                        c("year", "human_pop_dens"),
@@ -219,13 +220,12 @@ get_wsd <- function(xsd){
 
  print(paste("5. start estimating autocorrelation term", Sys.time()))
 
-all_sd <- seq(100, 40000, by = 100)
+all_sd <- seq(100, 60000, by = 100)
 system.time(
     all_aic <- unlist(lapply(all_sd, get_wsd))
 )
 warnings()
 
-save.image(file.path(outdir, "image_post_aic.RData"))
 
 png(file.path(outdir, 'aic_curve.png'), type = 'cairo')
 plot(all_sd, all_aic)
@@ -234,6 +234,9 @@ print("which is the minimum aic and where is it")
 
 all_aic[which.min(all_aic)]
 all_sd[which.min(all_aic)]
+
+exit
+
 
  print(paste("6. exported aic optimum plot", Sys.time()))
 # # where is the AIC minimum in the plot--> check the minimum in this range
@@ -297,7 +300,6 @@ results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind,
     return(result)
 }
 
-dim(results_res)
 save.image(file.path(outdir, "abundance_model_ac_term_image_post_foreach_doparloop.RData"))
 
 c_set <- cbind(as.character(results_res$model), conf.set(aic = results_res$AIC) )
