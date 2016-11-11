@@ -241,7 +241,6 @@ print("this is ac_term:")
 str(ac_term)
 print(paste("7. finished aic term", Sys.time()))
 saveRDS(ac_term, file.path(outdir, paste0("ac_term_", Sys.Date(), ".rds")))
-save.image(file.path(outdir, "abundance_model_ac_term_image.RData"))
 
 # #run models
 print(paste("8. start running models", Sys.time()))
@@ -292,7 +291,6 @@ results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind,
     return(result)
 }
 
-save.image(file.path(outdir, "abundance_model_ac_term_image_post_foreach_doparloop.RData"))
 
 c_set <- cbind(as.character(results_res$model), conf.set(aic = results_res$AIC) )
 names(c_set) <- c("model", names(c_set)[-1])
@@ -350,6 +348,5 @@ results_out <- results_out[order(results_out$AIC), ]
 write.csv(results_out, file = file.path(outdir, paste0("model_results_abundance_model_", Sys.Date(), ".csv")))
 write.csv(res.par.est.av, file = file.path(outdir, paste0("av_parameter_estimates_abundance_model_", Sys.Date(), ".csv")))
 
-save.image(file.path(outdir, paste0("abundance_model_and_prediction_", Sys.Date(), ".RData")))
 
 print(paste("11. finished script, finally, at", Sys.time()))
