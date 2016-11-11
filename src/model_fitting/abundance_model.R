@@ -73,8 +73,8 @@ predictors <- readRDS(predictors_path)
 # these are the predictors that will be used in the model
 predictor_names <- c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
                      "dom_T_PH", "peatswamp", "lowland_forest",
-                     "lower_montane_forest", "deforestation", "fire_dens",
-                     "road_dens", "distance_PA", "human_pop_dens",
+                     "lower_montane_forest", "fire_dens",
+                     "road_dens", "human_pop_dens",
                      "ou_killing_prediction", "perc_muslim" )
 
 geography <- dplyr::select(geography, -year)
@@ -143,17 +143,14 @@ all_model_terms <- built.all.models(env.cov.names =
                                          "peatswamp",
                                          "lowland_forest",
                                          "lower_montane_forest",
-                                         "deforestation",
                                          "fire_dens",
                                          "road_dens",
-                                         "distance_PA",
                                          "human_pop_dens",
                                          "ou_killing_prediction",
                                         "perc_muslim"),
-                                    env.cov.int = list(c("year", "deforestation"),
-                                                       c("year", "road_dens"),
+                                    env.cov.int = list(c("year", "road_dens"),
                                                        c("year", "human_pop_dens"),
-                                                       c("year", "distance_PA")),
+                                                       ),
                                     env.cov.2 = c("temp_mean",
                                                   "rain_dry"))
 
@@ -172,17 +169,13 @@ m_terms <- c("1",
              "peatswamp",
              "lowland_forest",
              "lower_montane_forest",
-             "deforestation",
              "fire_dens",
              "road_dens",
-             "distance_PA",
              "human_pop_dens",
              "ou_killing_prediction",
              "perc_muslim",
-             "deforestation:year",
              "road_dens:year",
              "human_pop_dens:year",
-             "distance_PA:year",
              "I(temp_mean^2)",
              "I(rain_dry^2)")
 
