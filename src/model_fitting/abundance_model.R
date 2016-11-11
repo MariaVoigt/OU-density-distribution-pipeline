@@ -225,14 +225,20 @@ dev.off()
 print("which is the minimum aic and where is it")
 
 all_aic[which.min(all_aic)]
-all_sd[which.min(all_aic)]
-
-exit
-
+all_sd_min <- all_sd[which.min(all_aic)]
+all_sd_min
 
  print(paste("6. exported aic optimum plot", Sys.time()))
 # # where is the AIC minimum in the plot--> check the minimum in this range
-w.sd <- optimize(get_wsd, lower = 10000, upper = 20000)
+lower_opt_range <- 50000
+upper_opt_range <- 60000
+# check if optimization in right area
+if(all_sd_min < lower_opt_range |
+   all_sd_min > upper_opt_range)
+      stop("Error: optimization not around minimum!")
+
+w.sd <- optimize(get_wsd, lower = lower_opt_range,
+                          upper = upper_opt_range)
 ac_term <- get.1d.ac(resis = resis, ac.sd = w.sd$minimum, lat = data$y_center,
                      long = data$x_center, contr.fac=NULL)
 ac_term <- as.vector(scale(ac_term))
