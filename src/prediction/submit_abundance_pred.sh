@@ -4,8 +4,8 @@
 
 #$ -S /bin/bash
 
-#$ -l h_rt=360:00:00
-#$ -l h_vmem=18G,highmem
+#$ -l h_rt=120:00:00
+#$ -l h_vmem=3G
 
 #$ -o /work/$USER/$JOB_NAME-$JOB_ID-$TASK_ID.log
 
