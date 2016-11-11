@@ -79,7 +79,7 @@ predictor_names <- predictor_names[!grepl("year[:punct:]*", predictor_names)]
 predictor_names <- c("year", predictor_names)
                                         # predictors for year on grid
 
-predictors_path <- path.to.current(indir_predictors, paste0("predictors_occ_grid_",
+predictors_path <- path.to.current(indir_predictors, paste0("predictors_abundance_grid_",
                                                  year_to_predict),"rds")
 print(paste("this is predictors path", predictors_path))
 predictors <- readRDS(predictors_path) %>%
