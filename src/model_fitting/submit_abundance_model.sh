@@ -38,7 +38,7 @@ mkdir $OUTPUT_PATH
 export MC_CORES=${NSLOTS:-1}
 
 Rscript \
-    abundance_model_occurrence_red.R \
+    abundance_model.R \
     $INPUT_PATH \
     $OUTPUT_PATH
 
