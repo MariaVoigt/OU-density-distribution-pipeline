@@ -29,20 +29,19 @@ indir <- args[1]
 print(paste("indir ", indir))
 outdir <- args[2]
 print(paste("outdir ", outdir))
-indir_fun <- args[3]
-print(paste("indir fun ", indir_fun))
-indir_predictors <- args[4]
+indir_predictors <- args[3]
 print(paste("indir predictors", indir_predictors))
-year_to_predict <- as.numeric(args[5])
+year_to_predict <- as.numeric(args[4])
 print(paste("year " , year_to_predict))
 
+indir_fun <- "../functions"
 
 
 #-----------#
 # LOAD DATA #
 #-----------#
 # Load functions
-source(file.path(indir_fun, "path.to.current.R"))
+source(file.path(indir_fun, "generic/path.to.current.R"))
 print("function loaded")
 
 # Load coefficients and weights
