@@ -4,18 +4,21 @@
 
 #$ -S /bin/bash
 
-#$ -l h_rt=24:00:00
-#$ -l h_vmem=18G,highmem
+#$ -l h_rt=2:00:00
+#$ -l h_vmem=3G
 
 #$ -o /work/$USER/$JOB_NAME-$JOB_ID.log
 #$ -j y
 
-#$ -pe smp 20
+#$ -pe smp 1-20
 
 
 #$ -m ea
 
-module load R
+#$ -cwd
+
+module load R/3.2.3-1
+
 
 if [[ -z $1 ]] ; then
   echo "qsub $0 /path/to/input"
@@ -29,16 +32,15 @@ fi
 
 INPUT_PATH=$1
 OUTPUT_PATH=/work/$USER/$JOB_NAME-$JOB_ID
-FUN_FILE=$2
-
 
 mkdir $OUTPUT_PATH
 
 export MC_CORES=${NSLOTS:-1}
 
 Rscript \
-$HOME/orangutan_density_distribution/src/model_fitting/abundance_model.R \
+    abundance_model_occurrence_red.R \
     $INPUT_PATH \
-    $OUTPUT_PATH \
-    $FUN_FILE
+    $OUTPUT_PATH
+
+
 
