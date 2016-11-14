@@ -4,14 +4,14 @@
 
 #$ -S /bin/bash
 
-#$ -l h_rt=120:00:00
+#$ -l h_rt=48:00:00
 #$ -l h_vmem=3G
 
 #$ -o /work/$USER/$JOB_NAME-$JOB_ID-$TASK_ID.log
 
 #$ -j y
 
-#$ -pe smp 20
+#$ -pe smp 10-20
 #$ -l avx
 
 #$ -m ea
