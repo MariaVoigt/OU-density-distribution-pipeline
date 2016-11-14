@@ -61,12 +61,15 @@ options("scipen" = 100, "digits" = 4)
 #---------------#
 
 geography_path <- path.to.current(indir, "geography_observation", "rds")
+print(paste("geography-path", geography_path))
 geography <- readRDS(geography_path)
 
 transects_path <- path.to.current(indir, "transects", "rds")
+print(paste("transect_path", transect_path))
 transects <- readRDS(transects_path)
 
 predictors_path <- path.to.current(indir, "predictors_observation", "rds")
+print(paste("predictors-path", predictors_path))
 predictors <- readRDS(predictors_path)
 
 
