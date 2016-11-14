@@ -16,7 +16,6 @@
 
 #$ -m ea
 
-#$ -cwd
 
 module load R
 
@@ -41,7 +40,7 @@ mkdir -p $OUTPUT_PATH
 export MC_CORES=${NSLOTS:-1}
 
 Rscript \
-    abundance_prediction.R \
+    ~/orangutan_density_distribution/src/prediction/abundance_prediction.R \
     $INPUT_PATH \
     $OUTPUT_PATH \
     $FUN_FILE \
