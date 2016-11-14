@@ -198,7 +198,7 @@ resis <- residuals(res)
 get_wsd <- function(xsd){
   xac_term <- get.1d.ac(resis = resis, ac.sd=xsd, lat = data$y_center,
                         long = data$x_center,
-                        contr.fac=NULL)
+                        contr.fac = "year")
   xac_term <- as.vector(scale(xac_term))
   xres <- zeroinfl(as.formula(paste(paste("nr_nests~", paste(m_terms, collapse = "+"),
                           "xac_term", "offset(offset_term) ", sep = "+"), "| 1",
