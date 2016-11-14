@@ -34,7 +34,7 @@ print(paste("indir predictors", indir_predictors))
 year_to_predict <- as.numeric(args[4])
 print(paste("year " , year_to_predict))
 
-indir_fun <- "../functions"
+indir_fun <- "~/orangutan_density_distribution/src/functions/"
 
 
 #-----------#
@@ -45,8 +45,8 @@ source(file.path(indir_fun, "generic/path.to.current.R"))
 print("function loaded")
 
 # Load coefficients and weights
-coeff_weights_path <- path.to.current(indir, "coeff_weights_abundance", "rds" )
-print(paste0("this is coeff_weights_path", coeff_weights_path))
+coeff_weights_path <- path.to.current(indir, "coeff_weights", "rds" )
+print(paste("this is coeff_weights_path:", coeff_weights_path))
 coeff_weights <- readRDS(coeff_weights_path)
 # exclude the first column, which contains models, exclude the coefficient of the
 # autocorellation term and the weighted aic of the model
@@ -79,7 +79,7 @@ predictor_names <- predictor_names[!grepl("year[:punct:]*", predictor_names)]
 predictor_names <- c("year", predictor_names)
                                         # predictors for year on grid
 
-predictors_path <- path.to.current(indir_predictors, paste0("predictors_abundance_grid_",
+predictors_path <- path.to.current(indir_predictors, paste0("predictors_abundance_",
                                                  year_to_predict),"rds")
 print(paste("this is predictors path", predictors_path))
 predictors <- readRDS(predictors_path) %>%
