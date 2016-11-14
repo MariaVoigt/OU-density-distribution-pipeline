@@ -243,7 +243,7 @@ if(all_sd_min < lower_opt_range |
 w.sd <- optimize(get_wsd, lower = lower_opt_range,
                           upper = upper_opt_range)
 ac_term <- get.1d.ac(resis = resis, ac.sd = w.sd$minimum, lat = data$y_center,
-                     long = data$x_center, contr.fac=NULL)
+                     long = data$x_center, contr.fac = "year")
 ac_term <- as.vector(scale(ac_term))
 
 print("this is ac_term:")
