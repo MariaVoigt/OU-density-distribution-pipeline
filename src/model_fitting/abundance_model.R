@@ -65,7 +65,7 @@ print(paste("geography-path", geography_path))
 geography <- readRDS(geography_path)
 
 transects_path <- path.to.current(indir, "transects", "rds")
-print(paste("transect_path", transect_path))
+print(paste("transect_path", transects_path))
 transects <- readRDS(transects_path)
 
 predictors_path <- path.to.current(indir, "predictors_observation", "rds")
