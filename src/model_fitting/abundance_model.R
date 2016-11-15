@@ -246,17 +246,25 @@ w.sd <- optimize(get_wsd, lower = lower_opt_range,
 ac_term <- get.1d.ac(resis = resis, ac.sd = w.sd$minimum, lat = data$y_center,
                      long = data$x_center, contr.fac = "year")
 ac_term <- as.vector(scale(ac_term))
-
+ac_term_tab <- as.data.frame(matrix(NA, ncol = 2, nrow = nrow(data)))
+names(ac_term_tab) <- c("id", "ac_term")
+ac_term_tab$id <- data$id
+ac_term_tab$ac_term <- ac_term
+rm(ac_term)
 print("this is ac_term:")
-str(ac_term)
+str(ac_term_tab)
 print(paste("7. finished aic term", Sys.time()))
-saveRDS(ac_term, file.path(outdir, paste0("ac_term_", Sys.Date(), ".rds")))
+saveRDS(ac_term_tab, file.path(outdir, paste0("ac_term_", Sys.Date(), ".rds")))
+
+data <- left_join(data, ac_term_tab, by = "id")
+
+print("This is data with ac_term")
+str(data)
 
 # #run models
 print(paste("8. start running models", Sys.time()))
 
-results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind,
-                       .export = c("ac_term")) %dopar% {
+results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
 
     # create objects for storing results
     # modelinfo + schätzung von coeffizienten und pi values
