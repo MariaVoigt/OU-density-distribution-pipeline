@@ -116,7 +116,8 @@ unique(names(data) == names(other_data))
 # HAS TO BE TRUE
 data <- data %>%
   bind_rows(other_data) %>%
-  arrange(id)
+    arrange(id) %>%
+    as.data.frame(.)
 
 
 data$z.year <- scale(data$year)
