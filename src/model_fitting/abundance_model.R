@@ -285,7 +285,7 @@ zeroinfl_stab <- as.data.frame(cbind(coefficients(res_full),
 names(zeroinfl_stab) <- c("original", "min", "max")
 saveRDS(zeroinfl_stab, file.path(outdir,
                                  paste0("zeroinflated_abundance_stability_",
-                                        sys.Date(), ".rds")))
+                                        Sys.Date(), ".rds")))
 
 # #run models
 print(paste("8. Finished stability and start running models", Sys.time()))
