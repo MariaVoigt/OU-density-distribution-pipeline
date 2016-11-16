@@ -270,15 +270,16 @@ print(paste("This is the full-model", full_model))
 model <- as.formula(
   paste("nr_nests ~", full_model, "+ ac_term + offset(offset_term) | 1"))
 
+res_full <- zeroinfl(model, data = data, dist = "negbin")
 
 all_coeffs <- foreach(i = 1:nrow(data), .combine = rbind) %dopar%{
-  res <- zeroinfl(model, data = data, dist = "negbin")
+  res <- zeroinfl(model, data = data[-i, ], dist = "negbin")
   coefficients(res)
 }
-colnames(all_coeffs) <- names(coefficients(res_interactions))
+colnames(all_coeffs) <- names(coefficients(res_full))
 
 # this extracts the results
-zeroinfl_stab <- as.data.frame(cbind(coefficients(res_interactions),
+zeroinfl_stab <- as.data.frame(cbind(coefficients(res_full),
                                      t(apply(X = all_coeffs,
                                              MARGIN = 2, FUN = range))))
 names(zeroinfl_stab) <- c("original", "min", "max")
