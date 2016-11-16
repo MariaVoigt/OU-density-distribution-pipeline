@@ -216,7 +216,7 @@ get_wsd <- function(xsd){
 
  print(paste("5. start estimating autocorrelation term", Sys.time()))
 
-all_sd <- seq(55000, 65000, by = 100)
+all_sd <- seq(100, 80000, by = 1000)
 system.time(
     all_aic <- unlist(lapply(all_sd, get_wsd))
 )
@@ -234,8 +234,8 @@ all_sd_min
 
  print(paste("6. exported aic optimum plot", Sys.time()))
 # # where is the AIC minimum in the plot--> check the minimum in this range
-lower_opt_range <- 55000
-upper_opt_range <- 65000
+lower_opt_range <- 10000
+upper_opt_range <- 20000
 # check if optimization in right area
 if(all_sd_min < lower_opt_range |
    all_sd_min > upper_opt_range)
