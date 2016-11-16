@@ -253,7 +253,7 @@ ac_term_tab$ac_term <- ac_term
 rm(ac_term)
 print("this is ac_term:")
 str(ac_term_tab)
-print(paste("7. finished aic term", Sys.time()))
+
 saveRDS(ac_term_tab, file.path(outdir, paste0("ac_term_", Sys.Date(), ".rds")))
 
 data <- left_join(data, ac_term_tab, by = "id")
@@ -261,8 +261,33 @@ data <- left_join(data, ac_term_tab, by = "id")
 print("This is data with ac_term")
 str(data)
 
+# calculate stability of the full model
+print(paste("8. Finished ac-term and start stability calculation", Sys.time()))
+full_model <- paste(
+  m_terms[all_model_terms[nrow(all_model_terms), ] == 1],
+  collapse = "+")
+print(paste("This is the full-model", full_model))
+model <- as.formula(
+  paste("nr_nests ~", full_model, "+ ac_term + offset(offset_term) | 1"))
+
+
+all_coeffs <- foreach(i = 1:nrow(data), .combine = rbind) %dopar%{
+  res <- zeroinfl(model, data = data, dist = "negbin")
+  coefficients(res)
+}
+colnames(all_coeffs) <- names(coefficients(res_interactions))
+
+# this extracts the results
+zeroinfl_stab <- as.data.frame(cbind(coefficients(res_interactions),
+                                     t(apply(X = all_coeffs,
+                                             MARGIN = 2, FUN = range))))
+names(zeroinfl_stab) <- c("original", "min", "max")
+saveRDS(zeroinfl_stab, file.path(outdir,
+                                 paste0("zeroinflated_abundance_stability_",
+                                        sys.Date(), ".rds")))
+
 # #run models
-print(paste("8. start running models", Sys.time()))
+print(paste("8. Finished stability and start running models", Sys.time()))
 
 results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
 
