@@ -202,7 +202,7 @@ resis <- residuals(res)
 get_wsd <- function(xsd){
   xac_term <- get.1d.ac(resis = resis, ac.sd=xsd, lat = data$y_center,
                         long = data$x_center,
-                        contr.fac = "year")
+                        contr.fac = data$year)
   xac_term <- as.vector(scale(xac_term))
   xres <- zeroinfl(as.formula(paste(paste("nr_nests~", paste(m_terms, collapse = "+"),
                           "xac_term", "offset(offset_term) ", sep = "+"), "| 1",
@@ -244,7 +244,7 @@ if(all_sd_min < lower_opt_range |
 w.sd <- optimize(get_wsd, lower = lower_opt_range,
                           upper = upper_opt_range)
 ac_term <- get.1d.ac(resis = resis, ac.sd = w.sd$minimum, lat = data$y_center,
-                     long = data$x_center, contr.fac = "year")
+                     long = data$x_center, contr.fac = data$year)
 ac_term <- as.vector(scale(ac_term))
 ac_term_tab <- as.data.frame(matrix(NA, ncol = 2, nrow = nrow(data)))
 names(ac_term_tab) <- c("id", "ac_term")
