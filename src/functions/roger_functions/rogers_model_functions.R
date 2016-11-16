@@ -77,26 +77,44 @@ predict.ac <- function(ac_term, lat, lon = NULL, same.pos.allowed = T,
 
 #function for ac_term
 get.1d.ac<-function(resis, ac.sd, lat, long=NULL, contr.fac=NULL, excl.contr.fac=NULL){
-  if(length(contr.fac)==0){contr.fac=rep(1, length(resis))}
-  if(length(excl.contr.fac)==0){excl.contr.fac=1:length(resis)}
-  excl.contr.fac=as.factor(excl.contr.fac)
-  contr.fac=as.factor(contr.fac)
-  c.fac.lev=levels(contr.fac)
-  if(length(long)==0){long=rep(0, length(lat))}
-  all.ac=rep(NA, length(resis))
+  # if no control factor, all is 1
+  if(is.null(contr.fac)){contr.fac <- rep(1, length(resis))}
+  # if length of excl.contr.fac is null, than every level different
+  if(is.null(excl.contr.fac)){excl.contr.fac <- 1:length(resis)}
+  # the levels of contr.fac are factors
+  contr.fac <- as.factor(contr.fac)
+  # the levels of excl.contr.fac are levels
+  excl.contr.fac <- as.factor(excl.contr.fac)
+  # levels of the factor
+  c.fac.lev <- levels(contr.fac)
+  # if long is not there, it is set to 0
+  if(is.null(long)){long <- rep(0, length(lat))}
+
+  all.ac <- rep(NA, length(resis))
+  # for each level of c.fac.lev
   for(i in 1:length(c.fac.lev)){
-    ind.resis=resis[contr.fac==c.fac.lev[i] & excl.contr.fac!=excl.contr.fac[i]]
-    ind.lat=lat[contr.fac==c.fac.lev[i] & excl.contr.fac!=excl.contr.fac[i]]
-    ind.long=long[contr.fac==c.fac.lev[i] & excl.contr.fac!=excl.contr.fac[i]]
-    xx=unlist(lapply(1:length(ind.resis), function(cell){
-      ac.weights=dnorm(x=sqrt((ind.lat[cell]-ind.lat[-cell])^2+ (ind.long[cell]-ind.long[-cell])^2), mean=0, sd=ac.sd)
-      ac.weights[is.nan(ac.weights)]=0
-      weighted.mean(ind.resis[-cell], w=ac.weights)
+    # this selects all residuals from the same year,
+    # which are not from the respective residual itself
+    ind.resis <- resis[contr.fac == c.fac.lev[i] &
+                         excl.contr.fac != excl.contr.fac[i]]
+    # this selects all latitudes and longitudes from the same year,
+    # which are not from the respective residual itself
+    ind.lat <- lat[contr.fac == c.fac.lev[i] &
+                     excl.contr.fac != excl.contr.fac[i]]
+    ind.long <- long[contr.fac == c.fac.lev[i] &
+                       excl.contr.fac != excl.contr.fac[i]]
+    # what is xx here?
+    xx <- unlist(lapply(1:length(ind.resis), function(cell){
+      ac.weights = dnorm(x = sqrt((ind.lat[cell] - ind.lat[-cell])^2 +
+                                    (ind.long[cell] - ind.long[-cell])^2),
+                         mean = 0, sd = ac.sd)
+      ac.weights[is.nan(ac.weights)] <- 0
+      weighted.mean(ind.resis[-cell], w = ac.weights)
     }))
-    all.ac[contr.fac==c.fac.lev[i] & excl.contr.fac!=excl.contr.fac[i]]=xx
+    all.ac[contr.fac == c.fac.lev[i] & excl.contr.fac != excl.contr.fac[i]] <- xx
   }
-  all.ac[is.nan(all.ac)]=0
-  all.ac[is.na(all.ac)]=0
+  all.ac[is.nan(all.ac)] <- 0
+  all.ac[is.na(all.ac)] <- 0
   return(all.ac)
 }
 
