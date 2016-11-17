@@ -76,16 +76,15 @@ predictors <- readRDS(predictors_path)
 # these are the predictors that will be used in the model
 predictor_names <- c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
                      "dom_T_PH", "peatswamp", "lowland_forest",
-                     "lower_montane_forest", "fire_dens",
-                     "road_dens", "human_pop_dens",
-                     "ou_killing_prediction", "perc_muslim" )
+                     "lower_montane_forest", "deforestation", "fire_dens",
+                      "human_pop_dens","ou_killing_prediction", "perc_muslim" )
 
 geography <- dplyr::select(geography, -year)
 
 data <- predictors %>%
   dplyr::filter(predictor %in% predictor_names) %>%
   dcast(id + year ~ predictor,  value.var = "scaled_value")%>%
-  inner_join(geography, by = "id")%>%
+  inner_join(geography, by = "id") %>%
   dplyr::select(-group) %>%
   inner_join(transects, by = "id" )
 
@@ -147,15 +146,13 @@ all_model_terms <- built.all.models(env.cov.names =
                                          "peatswamp",
                                          "lowland_forest",
                                          "lower_montane_forest",
+                                         "deforestation",
                                          "fire_dens",
-                                         "road_dens",
                                          "human_pop_dens",
                                          "ou_killing_prediction",
                                         "perc_muslim"),
-                                    env.cov.int = list(c("year", "road_dens"),
-                                                       c("year", "human_pop_dens")),
-                                    env.cov.2 = c("temp_mean",
-                                                  "rain_dry"))
+                                    env.cov.int = list(c("year", "human_pop_dens")),
+                                    env.cov.2 = c("rain_dry"))
 
 
 
@@ -172,14 +169,12 @@ m_terms <- c("1",
              "peatswamp",
              "lowland_forest",
              "lower_montane_forest",
+             "deforestation",
              "fire_dens",
-             "road_dens",
              "human_pop_dens",
              "ou_killing_prediction",
              "perc_muslim",
-             "road_dens:year",
              "human_pop_dens:year",
-             "I(temp_mean^2)",
              "I(rain_dry^2)")
 
 
