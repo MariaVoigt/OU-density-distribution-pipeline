@@ -187,88 +187,18 @@ m_terms <- c("1",
 model_terms <- names(zeroinfl(as.formula(paste("nr_nests~", paste(m_terms, collapse = "+"),
                                              "+ offset(offset_term) | 1", sep = "")),
                               data = data, dist = "negbin")$coefficients$count)
-# offset does not appear in model_terms
-model_terms <- c(model_terms ,"ac_term")
 
 
-#get autocorrelation term
-#run full model and derive autocorrelation term
-res <- zeroinfl(as.formula(paste("nr_nests~", paste(m_terms, collapse = "+"),
-                              "+ offset(offset_term) | 1", sep = "")) ,
-             data = data, dist = "negbin")
-resis <- residuals(res)
 
-
-get_wsd <- function(xsd){
-  xac_term <- get.1d.ac(resis = resis, ac.sd=xsd, lat = data$y_center,
-                        long = data$x_center,
-                        contr.fac = data$year)
-  xac_term <- as.vector(scale(xac_term))
-  xres <- zeroinfl(as.formula(paste(paste("nr_nests~", paste(m_terms, collapse = "+"),
-                          "xac_term", "offset(offset_term) ", sep = "+"), "| 1",
-                          sep = "")),
-         data = data, dist = "negbin")
-  aic <- -2 * xres$loglik + 2 *
-    length(coefficients(xres)) +
-    aic.c.fac(N = nrow(data),
-              k = length(coefficients(xres)))
-  return(aic)}
-
- print(paste("5. start estimating autocorrelation term", Sys.time()))
-
-all_sd <- seq(100, 80000, by = 1000)
-system.time(
-    all_aic <- unlist(lapply(all_sd, get_wsd))
-)
-warnings()
-
-
-png(file.path(outdir, 'aic_curve.png'), type = 'cairo')
-plot(all_sd, all_aic)
-dev.off()
-print("which is the minimum aic and where is it")
-
-all_aic[which.min(all_aic)]
-all_sd_min <- all_sd[which.min(all_aic)]
-all_sd_min
-
- print(paste("6. exported aic optimum plot", Sys.time()))
-# # where is the AIC minimum in the plot--> check the minimum in this range
-lower_opt_range <- 10000
-upper_opt_range <- 20000
-# check if optimization in right area
-if(all_sd_min < lower_opt_range |
-   all_sd_min > upper_opt_range)
-      stop("Error: optimization not around minimum!")
-
-w.sd <- optimize(get_wsd, lower = lower_opt_range,
-                          upper = upper_opt_range)
-ac_term <- get.1d.ac(resis = resis, ac.sd = w.sd$minimum, lat = data$y_center,
-                     long = data$x_center, contr.fac = data$year)
-ac_term <- as.vector(scale(ac_term))
-ac_term_tab <- as.data.frame(matrix(NA, ncol = 2, nrow = nrow(data)))
-names(ac_term_tab) <- c("id", "ac_term")
-ac_term_tab$id <- data$id
-ac_term_tab$ac_term <- ac_term
-rm(ac_term)
-print("this is ac_term:")
-str(ac_term_tab)
-
-saveRDS(ac_term_tab, file.path(outdir, paste0("ac_term_", Sys.Date(), ".rds")))
-
-data <- left_join(data, ac_term_tab, by = "id")
-
-print("This is data with ac_term")
-str(data)
 
 # calculate stability of the full model
-print(paste("8. Finished ac-term and start stability calculation", Sys.time()))
+print(paste("Start stability calculation", Sys.time()))
 full_model <- paste(
   m_terms[all_model_terms[nrow(all_model_terms), ] == 1],
   collapse = "+")
 print(paste("This is the full-model", full_model))
 model <- as.formula(
-  paste("nr_nests ~", full_model, "+ ac_term + offset(offset_term) | 1"))
+  paste("nr_nests ~", full_model, "+ offset(offset_term) | 1"))
 
 res_full <- zeroinfl(model, data = data, dist = "negbin")
 
@@ -300,11 +230,11 @@ results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
                             paste("P",model_terms,sep = "_"),
                             paste("SE", model_terms, sep = "_"), "AIC")
 
-    # check here with space before + ac_term
+    # check here with space before
     model <- as.formula(
         paste("nr_nests ~",
               paste(m_terms[all_model_terms[i, ] == 1], collapse = "+"),
-              "+ ac_term + offset(offset_term) | 1"))
+              "+ offset(offset_term) | 1"))
     res <- zeroinfl(model, data = data, dist = "negbin")
 
     # model
@@ -352,8 +282,8 @@ saveRDS(export, file = file.path(outdir, paste0("coeff_weights_", Sys.Date(), ".
 #calculate summary stats
 #parameter estimates
 # !!! ATTENTION
-# here all parameter coeff_, excluding the model, including the ac_term
-length_par_est <- length(m_terms) + 1
+# here all parameter coeff_, excluding the model
+length_par_est <- length(m_terms) 
 par.est <- results_res[ , 2:(length_par_est + 1)] # +1 because we start at 2
 #not considering models without parameter estimate
 par.est.av.1 <- c()
