@@ -63,14 +63,16 @@ coeffs[is.na(coeffs) == T] <- 0
 # CODE THIS
 # here only separate after first _
 predictor_names_coeffs <- gsub("coeff_","", names(coeffs))
-interaction_terms_names <- predictor_names_coeffs[predictor_names_coeffs %in%
-                           paste0("year:", predictor_names_coeffs)] 
-interaction_terms_names <- gsub("year:", "", interaction_terms_names)
-quadratic_terms_names <- predictor_names_coeffs[predictor_names_coeffs %in%
-                                                 paste0("I(", predictor_names_coeffs, "^2)")]
-quadratic_terms_names <- gsub("I\\(|\\^2\\)", "", quadratic_terms_names )
+#UNDERSTAND HERE WHAT IS HAPPENING
+#interaction_terms_names <- predictor_names_coeffs[predictor_names_coeffs %in%
+#                           paste0("year:", predictor_names_coeffs)] 
+#interaction_terms_names <- gsub("year:", "", interaction_terms_names)
+#quadratic_terms_names <- predictor_names_coeffs[predictor_names_coeffs %in%
+#                                                 paste0("I(", predictor_names_coeffs, "^2)")]
+#quadratic_terms_names <- gsub("I\\(|\\^2\\)", "", quadratic_terms_names )
 
-
+interaction_terms_names <- c("human_pop_dens")
+quadratic_terms_names <- c("rain_dry")
 predictor_names_coeffs <- predictor_names_coeffs[predictor_names_coeffs != "(Intercept)"]
 # don't include interaction or quadratic term
 predictor_names <- predictor_names_coeffs[!grepl("I(*)", predictor_names_coeffs)]
