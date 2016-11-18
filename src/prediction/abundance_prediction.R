@@ -123,11 +123,14 @@ print(paste("1. start pred_per_cell", Sys.time()))
 pred_per_cell <- foreach(i = 1:nrow(predictor_estimates), .combine = c)  %dopar% {
 # pred_per_cell <- foreach(i = 1:100, .combine = c)  %dopar% {
 t_predictor_estimates <- t( predictor_estimates[i, ])
-                   pred_estimates_wcoeffs  <- data.frame(mapply(`*`, coeffs, t_predictor_estimates, SIMPLIFY = F))
-                   pred_estimates_sum <- apply(pred_estimates_wcoeffs, 1, sum)
-    pred_estimates_calc <- exp(pred_estimates_sum) * 1/(1 + exp(-(pred_estimates_sum)))
-                 pred_estimates_weighted <- pred_estimates_calc * coeff_weights$w_aic
-                 sum(pred_estimates_weighted)
+pred_estimates_wcoeffs  <- data.frame(mapply(`*`, coeffs, t_predictor_estimates, SIMPLIFY = F))
+pred_estimates_sum <- apply(pred_estimates_wcoeffs, 1, sum)
+# check this
+# sonst zeroinflated part.  wahrscheinlichkeit das null ist durhc 1- --> wahrscheinl das es 1 ist
+# wahrscheinlich macht es auch sinn da prediktoren drin zu haben in zeroinflated part
+pred_estimates_calc <- exp(pred_estimates_sum) * (1 - (1/(1 + exp(-(coeff_(Intercept))))))
+pred_estimates_weighted <- pred_estimates_calc * coeff_weights$w_aic
+return(sum(pred_estimates_weighted))
                 }
 
 print(paste(Sys.time(), "2. finished dopar loop"))
