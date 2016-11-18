@@ -65,7 +65,7 @@ coeffs[is.na(coeffs) == T] <- 0
 predictor_names_coeffs <- gsub("coeff_","", names(coeffs))
 #UNDERSTAND HERE WHAT IS HAPPENING
 #interaction_terms_names <- predictor_names_coeffs[predictor_names_coeffs %in%
-#                           paste0("year:", predictor_names_coeffs)] 
+#                           paste0("year:", predictor_names_coeffs)]
 #interaction_terms_names <- gsub("year:", "", interaction_terms_names)
 #quadratic_terms_names <- predictor_names_coeffs[predictor_names_coeffs %in%
 #                                                 paste0("I(", predictor_names_coeffs, "^2)")]
@@ -81,6 +81,7 @@ predictor_names <- predictor_names[!grepl("year[:punct:]*", predictor_names)]
 predictor_names <- c("year", predictor_names)
                                         # predictors for year on grid
 
+print(paste("these are predictor names: ", predictor_names))
 predictors_path <- path.to.current(indir_predictors, paste0("predictors_abundance_",
                                                  year_to_predict),"rds")
 print(paste("this is predictors path", predictors_path))
@@ -117,10 +118,10 @@ names(predictor_estimates) <- c("intercept", predictor_names,
 # Alternative here to loop through id, which is added to predictor_estimates
 # more correct in terms of being sure that the right thing is done,
 # but takes a bit longer (52s, to 35s for 100 rows)
-## PLUS PAY ATTENTION, IF PREDICTIONS NOT SAME NROW--> VALUES GET RECYCLED   
+## PLUS PAY ATTENTION, IF PREDICTIONS NOT SAME NROW--> VALUES GET RECYCLED
 print(paste("1. start pred_per_cell", Sys.time()))
 pred_per_cell <- foreach(i = 1:nrow(predictor_estimates), .combine = c)  %dopar% {
-# pred_per_cell <- foreach(i = 1:100, .combine = c)  %dopar% { 
+# pred_per_cell <- foreach(i = 1:100, .combine = c)  %dopar% {
 t_predictor_estimates <- t( predictor_estimates[i, ])
                    pred_estimates_wcoeffs  <- data.frame(mapply(`*`, coeffs, t_predictor_estimates, SIMPLIFY = F))
                    pred_estimates_sum <- apply(pred_estimates_wcoeffs, 1, sum)
@@ -131,7 +132,7 @@ t_predictor_estimates <- t( predictor_estimates[i, ])
 
 print(paste(Sys.time(), "2. finished dopar loop"))
 
-
+# is this correct -> ????
 pred_per_cell <- as.data.frame(cbind(predictors$id, pred_per_cell))
 names(pred_per_cell) <- c("id", "abundance_pred")
 
@@ -143,7 +144,7 @@ print(paste(Sys.time(), "sum predicted for ", year_to_predict,
             sum(pred_per_cell$abundance_pred)))
 print(paste(Sys.time(), "range predicted for ", year_to_predict,
             range(pred_per_cell$abundance_pred)))
-# has to be between 0 and 1
+
 
 save.image(file.path(outdir, paste0("abundance_pred_image_", year_to_predict, "_",
                                     Sys.Date(), ".RData")))
