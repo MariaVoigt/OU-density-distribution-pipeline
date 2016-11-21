@@ -76,62 +76,38 @@ predictors <- readRDS(predictors_path)
 # these are the predictors that will be used in the model
 predictor_names <- c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
                      "dom_T_PH", "peatswamp", "lowland_forest",
-                     "lower_montane_forest", "deforestation", "fire_dens",
-                      "human_pop_dens","ou_killing_prediction", "perc_muslim" )
+                     "lower_montane_forest", "deforestation",
+                     "ou_killing_prediction", "perc_muslim" )
 
 geography <- dplyr::select(geography, -year)
 
-data <- predictors %>%
+predictors_obs <- predictors %>%
   dplyr::filter(predictor %in% predictor_names) %>%
   dcast(id + year ~ predictor,  value.var = "scaled_value")%>%
-  inner_join(geography, by = "id") %>%
+  inner_join(geography, by = "id")%>%
   dplyr::select(-group) %>%
-  inner_join(transects, by = "id" )
-
-# work on aerial transects
-# here we need to calculate first the aerial index (nests / km) and then transform it to nest-density
-# then we include the offset without length_km * 2 * ESW
-# for the transect this goes into the term
-aerial_data <- dplyr::filter(data, group == "aerial")
-# Ai is aerial index (number of nests detected per kilometer of flight)
-aerial_data$AI <- aerial_data$nr_nests / aerial_data$length_km
-# calculate orangutan nest density from aerial index with formula 6 given in Ancrenaz et al., 2004
-aerial_data$nr_nests <- round(exp(4.7297 + 0.9796 * log(aerial_data$AI)))
-
-aerial_data$ou_dens <- aerial_data$nr_nests / (aerial_data$nest_decay * NCS * PNB)
-aerial_data$offset_term <- log(1 * 1* aerial_data$nest_decay * NCS * PNB )
-
-other_data <- filter(data, group != "aerial")
-other_data$ou_dens <- (other_data$nr_nests/ (other_data$length_km * ESW * 2))  *
-  (1/(other_data$nest_decay * NCS * PNB))
-
-other_data$offset_term <- log(other_data$length_km * ESW * 2 * other_data$nest_decay * NCS * PNB)
-names_data <- names(other_data)
-
-data <- aerial_data %>%
-  dplyr::select(id:length_km, nr_nests, nest_decay, ou_dens, offset_term)
-print("This has to be true:")
-unique(names(data) == names(other_data))
-# HAS TO BE TRUE
-data <- data %>%
-  bind_rows(other_data) %>%
-    arrange(id) %>%
-    as.data.frame(.)
+  inner_join(transects, by = "id" ) %>%
+  dplyr::filter(group != "aerial")
 
 
-data$z.year <- scale(data$year)
-data$unscaled_year <- as.numeric(data$year)
-data$year <- as.numeric(data$z.year)
-data$z.year <- NULL
+predictors_obs$ou_dens <- (predictors_obs$nr_nests/ (predictors_obs$length_km * ESW * 2))  *
+  (1/(predictors_obs$nest_decay * NCS * PNB))
+# HERE WE ARE ONLY LOOKING AT NESTS
+predictors_obs$offset_term <- log(predictors_obs$length_km * ESW * 2 * predictors_obs$nest_decay * NCS * PNB)
 
+
+# SCALE YEAR
+scaled_year <- as.vector(scale(predictors_obs$year))
+predictors_obs$unscaled_year <- predictors_obs$year
+predictors_obs$year <- as.numeric(scaled_year)
 
 # calculate x and y center
-data$x_center <-  rowMeans(cbind(data$x_start, data$x_end), na.rm = T)
-data$y_center <- rowMeans(cbind(data$y_start, data$y_end), na.rm = T)
+predictors_obs$x_center <-  rowMeans(cbind(predictors_obs$x_start, predictors_obs$x_end), na.rm = T)
+predictors_obs$y_center <- rowMeans(cbind(predictors_obs$y_start, predictors_obs$y_end), na.rm = T)
 
-print("look at data")
-str(data)
-summary(data)
+print("look at predictors_obs")
+str(predictors_obs)
+summary(predictors_obs)
 
  print(paste("3. start making all_model_terms", Sys.time()))
 
@@ -147,11 +123,9 @@ all_model_terms <- built.all.models(env.cov.names =
                                          "lowland_forest",
                                          "lower_montane_forest",
                                          "deforestation",
-                                         "fire_dens",
-                                         "human_pop_dens",
                                          "ou_killing_prediction",
                                         "perc_muslim"),
-                                    env.cov.int = list(c("year", "human_pop_dens")),
+                                    env.cov.int = list(),
                                     env.cov.2 = c("rain_dry"))
 
 
@@ -170,18 +144,17 @@ m_terms <- c("1",
              "lowland_forest",
              "lower_montane_forest",
              "deforestation",
-             "fire_dens",
-             "human_pop_dens",
              "ou_killing_prediction",
              "perc_muslim",
-             "human_pop_dens:year",
              "I(rain_dry^2)")
 
 
 # save model_terms here
-model_terms <- names(zeroinfl(as.formula(paste("nr_nests~", paste(m_terms, collapse = "+"),
-                                             "+ offset(offset_term) | 1", sep = "")),
-                              data = data, dist = "negbin")$coefficients$count)
+model_terms <- names(glm.nb(as.formula(paste("nr_nests~", paste(m_terms,
+                                                                collapse = "+"),
+                                             "+ offset(offset_term)",
+                                             sep = "")),
+                              data = predictors_obs)$coefficients)
 
 
 
@@ -193,23 +166,18 @@ full_model <- paste(
   collapse = "+")
 print(paste("This is the full-model", full_model))
 model <- as.formula(
-  paste("nr_nests ~", full_model, "+ offset(offset_term) | 1"))
+  paste("nr_nests ~", full_model, "+ offset(offset_term)"))
 
-res_full <- zeroinfl(model, data = data, dist = "negbin")
+res_full <- glm.nb(model, data = predictors_obs)
 
-all_coeffs <- foreach(i = 1:nrow(data), .combine = rbind) %dopar%{
-  res <- zeroinfl(model, data = data[-i, ], dist = "negbin")
-  coefficients(res)
-}
-colnames(all_coeffs) <- names(coefficients(res_full))
+# HERE I CAN NOW USE THE OTHER FUNCTION
+dfbeta_frame <- data.frame(slope=res_full$coefficients, res_full$coefficients+
+                             t(apply(X=dfbeta(res_full),
+                                     MARGIN=2, FUN=range)))
+names(dfbeta_frame) <- c("slope", "min", "max")
 
-# this extracts the results
-zeroinfl_stab <- as.data.frame(cbind(coefficients(res_full),
-                                     t(apply(X = all_coeffs,
-                                             MARGIN = 2, FUN = range))))
-names(zeroinfl_stab) <- c("original", "min", "max")
-write.csv(zeroinfl_stab, file.path(outdir,
-                                 paste0("zeroinflated_abundance_stability_",
+write.csv(dfbeta_frame, file.path(outdir,
+                                 paste0("glm_abundance_stability_",
                                         Sys.Date(), ".csv")), row.names = T)
 
 # #run models
@@ -230,7 +198,7 @@ results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
         paste("nr_nests ~",
               paste(m_terms[all_model_terms[i, ] == 1], collapse = "+"),
               "+ offset(offset_term) | 1"))
-    res <- zeroinfl(model, data = data, dist = "negbin")
+    res <- zeroinfl(model, data = predictors_obs, dist = "negbin")
 
     # model
     result[ , "model"] <- paste(m_terms[all_model_terms[i, ] == 1], collapse = "+")
@@ -252,7 +220,7 @@ results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
     # aic in last column, roger script 10b_aic_mmi_applied_handout
     aic <- -2 * res$loglik + 2 *
       length(coefficients(res)) +
-      aic.c.fac(N = nrow(data),
+      aic.c.fac(N = nrow(predictors_obs),
                 k = length(coefficients(res)))
 
     result[ , "AIC"] <- aic
@@ -278,7 +246,7 @@ saveRDS(export, file = file.path(outdir, paste0("coeff_weights_", Sys.Date(), ".
 #parameter estimates
 # !!! ATTENTION
 # here all parameter coeff_, excluding the model
-length_par_est <- length(m_terms) 
+length_par_est <- length(m_terms)
 par.est <- results_res[ , 2:(length_par_est + 1)] # +1 because we start at 2
 #not considering models without parameter estimate
 par.est.av.1 <- c()
