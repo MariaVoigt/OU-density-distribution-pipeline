@@ -217,13 +217,9 @@ results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
       summary(res)$coefficients$count[ , "Std. Error"][names(
         res$coefficients$count)]#add line for SE
 
-    # aic in last column, roger script 10b_aic_mmi_applied_handout
-    aic <- -2 * res$loglik + 2 *
-      length(coefficients(res)) +
-      aic.c.fac(N = nrow(predictors_obs),
-                k = length(coefficients(res)))
 
-    result[ , "AIC"] <- aic
+    # aic in last column,
+    result[ , "AIC"] <- extractAIC(res)[2]
 
     return(result)
 }
