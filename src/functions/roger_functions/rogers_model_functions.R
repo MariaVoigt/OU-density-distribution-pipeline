@@ -135,3 +135,39 @@ new.get.conf.set <- function(inp.table){#inp.table is expected to comprise two v
   #as.data.frame(cbind(o.models,o.aic,d.aic,e.aic, w.aic,cum,c.set,order))
   return(result)
 }
+
+
+
+#calculate summary stats
+#parameter estimates
+calculate.mean.coefficients <- function(m_terms, results_res, c_set){
+
+  # !!! ATTENTION
+  # here all parameter coeff_, excluding the model
+  length_par_est <- length(m_terms)
+  par.est <- results_res[ , 2:(length_par_est + 1)] # +1 because we start at 2
+  #not considering models without parameter estimate
+  par.est.av.1 <- c()
+  #
+  # # here we loop through par.est, so it has to have same length
+  for(i in 1:length(par.est)) {
+    temp.par.est <- cbind(par.est[ ,i], c_set$w.aic)
+    temp.par.est <- subset(temp.par.est, !is.na(temp.par.est[ , 1]))
+    temp.par.est[ , 2] <- temp.par.est[, 2] / sum(temp.par.est[ , 2])
+    par.est.av.1 <- c(par.est.av.1,
+                      weighted.mean(temp.par.est[ ,1],
+                                    temp.par.est[ ,2],
+                                    na.rm = T))
+  }
+
+  #including models without parameter estimate
+  par.est.no.NA <- results_res[ , 2:(length_par_est + 1)]
+
+  for (i in 1:length(par.est.no.NA)) {
+    par.est.no.NA[,i][is.na(par.est.no.NA[,i])] <- 0
+  }
+  par.est.av.2 <- apply(par.est.no.NA * c_set$w.aic, 2, sum)
+  res.par.est.av <- data.frame(par.est.av.1, par.est.av.2)
+
+  return(res.par.est.av)
+}
