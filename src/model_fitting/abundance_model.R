@@ -29,12 +29,20 @@ print(paste("args", args))
 # the directory in which the files are
 
 indir <- args[1]
-# to check whether it is right (in log-script)
+
 print(paste("indir ", indir))
 # directory in which output is written
 
 outdir <- args[2]
 print(paste("outdir ", outdir))
+
+do_stability <- args[3]
+
+if(is.na(do_stability)){do_stability <- FALSE} else{
+  if (do_stability == "do_stability"){do_stability <- TRUE} else{
+    stop("there is the wrong input in do_stability")
+  }
+}
 
 indir_fun <- "../functions"
 print(paste("indir_fun", indir_fun))
@@ -68,6 +76,7 @@ transects_path <- path.to.current(indir, "transects", "rds")
 print(paste("transect_path", transects_path))
 transects <- readRDS(transects_path)
 
+
 predictors_path <- path.to.current(indir, "predictors_observation", "rds")
 print(paste("predictors-path", predictors_path))
 predictors <- readRDS(predictors_path)
@@ -77,10 +86,15 @@ predictors <- readRDS(predictors_path)
 predictor_names <- c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
                      "dom_T_PH", "peatswamp", "lowland_forest",
                      "lower_montane_forest", "deforestation",
-                     "ou_killing_prediction", "perc_muslim" )
+                     "human_pop_dens", "ou_killing_prediction",
+                     "perc_muslim" )
 
 geography <- dplyr::select(geography, -year)
 
+print("how many rows with na in scaled_value")
+nrow(predictors[is.na(predictors$scaled_value),  ])
+# deleting is.na values here
+predictors <- predictors[!is.na(predictors$scaled_value), ]
 predictors_obs <- predictors %>%
   dplyr::filter(predictor %in% predictor_names) %>%
   dcast(id + year ~ predictor,  value.var = "scaled_value")%>%
@@ -105,6 +119,10 @@ predictors_obs$year <- as.numeric(scaled_year)
 predictors_obs$x_center <-  rowMeans(cbind(predictors_obs$x_start, predictors_obs$x_end), na.rm = T)
 predictors_obs$y_center <- rowMeans(cbind(predictors_obs$y_start, predictors_obs$y_end), na.rm = T)
 
+# calculate ou_dens
+predictors_obs$nr_ou_per_km2 <- predictors_obs$nr_nests /
+  (predictors_obs$length_km * ESW * 2 * predictors_obs$nest_decay  * NCS * PNB )
+
 print("look at predictors_obs")
 str(predictors_obs)
 summary(predictors_obs)
@@ -123,8 +141,9 @@ all_model_terms <- built.all.models(env.cov.names =
                                          "lowland_forest",
                                          "lower_montane_forest",
                                          "deforestation",
+                                         "human_pop_dens",
                                          "ou_killing_prediction",
-                                        "perc_muslim"),
+                                         "perc_muslim"),
                                     env.cov.int = list(),
                                     env.cov.2 = c("rain_dry"))
 
@@ -144,6 +163,7 @@ m_terms <- c("1",
              "lowland_forest",
              "lower_montane_forest",
              "deforestation",
+             "human_pop_dens",
              "ou_killing_prediction",
              "perc_muslim",
              "I(rain_dry^2)")
@@ -155,11 +175,20 @@ model_terms <- names(glm.nb(as.formula(paste("nr_nests~", paste(m_terms,
                                              "+ offset(offset_term)",
                                              sep = "")),
                               data = predictors_obs)$coefficients)
+# prediction estimates
+intercept <- rep(1, nrow(predictors_obs))
+predictor_estimates <- cbind( intercept,
+                               predictors_obs[ , predictor_names],
+                               predictors_obs[ ,"rain_dry"] *
+                                 predictors_obs[ ,"rain_dry"])
+
+names(predictor_estimates) <- c("intercept", predictor_names,
+                                paste0("I(", "rain_dry", "^2)"))
 
 
 
-
-# calculate stability of the full model
+# calculate stability of the full model if desired
+if(do_stability){
 print(paste("Start stability calculation", Sys.time()))
 full_model <- paste(
   m_terms[all_model_terms[nrow(all_model_terms), ] == 1],
@@ -177,50 +206,66 @@ dfbeta_frame <- data.frame(slope=res_full$coefficients, res_full$coefficients+
 names(dfbeta_frame) <- c("slope", "min", "max")
 
 write.csv(dfbeta_frame, file.path(outdir,
-                                 paste0("glm_abundance_stability_",
-                                        Sys.Date(), ".csv")), row.names = T)
+                                  paste0("glm_abundance_stability_",
+                                         Sys.Date(), ".csv")), row.names = T)
+}
 
 # #run models
-print(paste("8. Finished stability and start running models", Sys.time()))
+print(paste("8. Start running models", Sys.time()))
 
 results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
-
+#system.time(results_res <- foreach (i = 1:10, .combine = rbind) %do% {
     # create objects for storing results
     # modelinfo + schätzung von coeffizienten und pi values
-    result <- as.data.frame(matrix(NA, ncol = 3 * length(model_terms) + 2,
+    result <- as.data.frame(matrix(NA, ncol = 3 * length(model_terms) + 3,
                                         nrow = 1))
     names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
                             paste("P",model_terms,sep = "_"),
-                            paste("SE", model_terms, sep = "_"), "AIC")
+                            paste("SE", model_terms, sep = "_"),
+                       "AIC", "R2")
 
-    # check here with space before
+    # model fitting
     model <- as.formula(
         paste("nr_nests ~",
               paste(m_terms[all_model_terms[i, ] == 1], collapse = "+"),
-              "+ offset(offset_term) | 1"))
-    res <- zeroinfl(model, data = predictors_obs, dist = "negbin")
+              "+ offset(offset_term)"))
+    res <- glm.nb(model, data = predictors_obs)
 
     # model
     result[ , "model"] <- paste(m_terms[all_model_terms[i, ] == 1], collapse = "+")
 
-    # coefficients (+ 1 because first column are the models)
-    result[ , paste0("coeff_", names(res$coefficients$count))] <-
-      as.vector(res$coefficients$count)
+
+    # coefficients
+    model_coefficients <- as.vector(res$coefficients)
+    result[ , paste0("coeff_", names(res$coefficients))] <- model_coefficients
+
 
     # p value
-    result[ , paste0("P_", names(res$coefficients$count))] <-
-      summary(res)$coefficients$count[ , "Pr(>|z|)"][names(
-        res$coefficients$count)] #w/o parameter for autocor.
+    result[ , paste0("P_", names(res$coefficients))] <-
+      summary(res)$coefficients[ , "Pr(>|z|)"][names(
+        res$coefficients)] #w/o parameter for autocor.
 
     # SE
-    result[ , paste0("SE_", names(res$coefficients$count))] <-
-      summary(res)$coefficients$count[ , "Std. Error"][names(
-        res$coefficients$count)]#add line for SE
-
+    result[ , paste0("SE_", names(res$coefficients))] <-
+      summary(res)$coefficients[ , "Std. Error"][names(
+        res$coefficients)]#add line for SE
 
     # aic in last column,
     result[ , "AIC"] <- extractAIC(res)[2]
 
+    # what do I need to do
+    # I need to get only the prediction estimates columns that are true in
+    # all_model_terms[i, ]==1
+    predictor_model_estimates <- predictor_estimates[ ,(all_model_terms[i, ] == 1)]
+   predictor_model_estimates$offset_term <- 0
+    # prediction estimates
+    prediction_per_transect <-  predict.glm(res,
+                                            newdata = predictor_model_estimates,
+                                            type = "response")
+
+    comparison_lm = lm(predictors_obs$nr_ou_per_km2 ~ prediction_per_transect )
+
+    result[ , "R2"] <- summary(comparison_lm)$r.squared
     return(result)
 }
 
@@ -234,52 +279,35 @@ export <- results_res %>%
                 contains("coeff")) %>%
   mutate(w_aic = c_set$w.aic)
 
-# results_res
-saveRDS(export, file = file.path(outdir, paste0("coeff_weights_", Sys.Date(), ".rds")))
 
+# calculate coefficient summary
+summary_mean_coefficients <- calculate.mean.coefficients(m_terms, results_res, c_set)
 
-#calculate summary stats
-#parameter estimates
-# !!! ATTENTION
-# here all parameter coeff_, excluding the model
-length_par_est <- length(m_terms)
-par.est <- results_res[ , 2:(length_par_est + 1)] # +1 because we start at 2
-#not considering models without parameter estimate
-par.est.av.1 <- c()
-#
-# # here we loop through par.est, so it has to have same length
-for(i in 1:length(par.est)) {
-  temp.par.est <- cbind(par.est[ ,i], c_set$w.aic)
-  temp.par.est <- subset(temp.par.est, !is.na(temp.par.est[ , 1]))
-  temp.par.est[ , 2] <- temp.par.est[, 2] / sum(temp.par.est[ , 2])
-  par.est.av.1 <- c(par.est.av.1,
-                    weighted.mean(temp.par.est[ ,1],
-                                  temp.par.est[ ,2],
-                                  na.rm = T))
-}
-
-
-#including models without parameter estimate
-par.est.no.NA <- results_res[ , 2:(length_par_est + 1)]
-
-for (i in 1:length(par.est.no.NA)) {
-  par.est.no.NA[,i][is.na(par.est.no.NA[,i])] <- 0
-}
-par.est.av.2 <- apply(par.est.no.NA * c_set$w.aic, 2, sum)
-res.par.est.av <- data.frame(par.est.av.1, par.est.av.2)
-
-print(paste("10. saving output", Sys.time()))
-
-# # join c_set and results_res for showing
+# make table for model output
 c_set$model <- NULL
 names(c_set)[1] <- "AIC"
 names(c_set)
+c_set$d.aic <- NULL
+c_set$w.aic <- NULL
 results_out <- right_join(results_res, c_set,  by="AIC")
-str(results_out)
 results_out <- results_out[order(results_out$AIC), ]
 
-write.csv(results_out, file = file.path(outdir, paste0("model_results_abundance_model_", Sys.Date(), ".csv")))
-write.csv(res.par.est.av, file = file.path(outdir, paste0("av_parameter_estimates_abundance_model_", Sys.Date(), ".csv")))
+
+# save the coefficients and weights for the prediction
+saveRDS(export, file = file.path(outdir, paste0("coeff_weights_",
+                                                Sys.Date(), ".rds")))
+
+# save the model results for interpretation
+write.csv(results_out,
+          file = file.path(outdir,
+                           paste0("model_results_abundance_model_",
+                                               Sys.Date(), ".csv")))
+# save the mean coefficients for interpretation
+write.csv(summary_mean_coefficients,
+          file = file.path(outdir,
+                           paste0("mean_coefficients_abundance_model_",
+                                  Sys.Date(), ".csv")))
+
 
 
 print(paste("11. finished script, finally, at", Sys.time()))
