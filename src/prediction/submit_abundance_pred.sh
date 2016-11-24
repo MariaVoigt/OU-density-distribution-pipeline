@@ -11,7 +11,7 @@
 
 #$ -j y
 
-#$ -pe smp 10-20
+#$ -pe smp 10,20
 #$ -l avx
 
 #$ -m ea
