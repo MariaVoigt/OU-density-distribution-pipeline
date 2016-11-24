@@ -10,7 +10,7 @@
 #$ -o /work/$USER/$JOB_NAME-$JOB_ID.log
 #$ -j y
 
-#$ -pe smp 10-20
+#$ -pe smp 10,20
 
 
 #$ -m ea
