@@ -212,6 +212,7 @@ write.csv(dfbeta_frame, file.path(outdir,
 
 # #run models
 print(paste("8. Start running models", Sys.time()))
+save.image(file.path(outdir, "image_before_fitting.RData"))
 
 results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
 #system.time(results_res <- foreach (i = 1:10, .combine = rbind) %do% {
@@ -256,11 +257,11 @@ results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
     # what do I need to do
     # I need to get only the prediction estimates columns that are true in
     # all_model_terms[i, ]==1
-    predictor_model_estimates <- predictor_estimates[ ,(all_model_terms[i, ] == 1)]
-   predictor_model_estimates$offset_term <- 0
+    predictors_obs_pred <- predictors_obs
+    predictors_obs_pred$offset_term <- 0
     # prediction estimates
     prediction_per_transect <-  predict.glm(res,
-                                            newdata = predictor_model_estimates,
+                                            newdata = predictors_obs_pred,
                                             type = "response")
 
     comparison_lm = lm(predictors_obs$nr_ou_per_km2 ~ prediction_per_transect )
