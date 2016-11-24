@@ -32,6 +32,7 @@ fi
 
 INPUT_PATH=$1
 OUTPUT_PATH=/work/$USER/$JOB_NAME-$JOB_ID
+DO_STABILITY=$2
 
 mkdir $OUTPUT_PATH
 
@@ -40,7 +41,8 @@ export MC_CORES=${NSLOTS:-1}
 Rscript \
     abundance_model.R \
     $INPUT_PATH \
-    $OUTPUT_PATH
+    $OUTPUT_PATH \
+    $DO_STABILITY
 
 
 
