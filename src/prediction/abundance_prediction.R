@@ -71,15 +71,10 @@ predictor_names_coeffs <- gsub("coeff_","", names(coeffs))
 #                                                 paste0("I(", predictor_names_coeffs, "^2)")]
 #quadratic_terms_names <- gsub("I\\(|\\^2\\)", "", quadratic_terms_names )
 
-interaction_terms_names <- c("human_pop_dens")
 quadratic_terms_names <- c("rain_dry")
 predictor_names_coeffs <- predictor_names_coeffs[predictor_names_coeffs != "(Intercept)"]
 # don't include interaction or quadratic term
 predictor_names <- predictor_names_coeffs[!grepl("I(*)", predictor_names_coeffs)]
-predictor_names <- predictor_names[!grepl("year[:punct:]*", predictor_names)]
-# this is not a good fix, the problem is that with the second grepl also variable "year" gone
-predictor_names <- c("year", predictor_names)
-                                        # predictors for year on grid
 
 print(paste("these are predictor names: ", predictor_names))
 predictors_path <- path.to.current(indir_predictors, paste0("predictors_abundance_",
@@ -106,12 +101,10 @@ print(paste("this is nrow predictors", nrow(predictors)))
 intercept <- rep(1, nrow(predictors))
 predictor_estimates <- cbind( intercept,
                     predictors[ , predictor_names],
-                    predictors[ ,quadratic_terms_names] * predictors[ ,quadratic_terms_names],
-                    predictors[ , "year"] * predictors[ , interaction_terms_names])
+                    predictors[ ,quadratic_terms_names] * predictors[ ,quadratic_terms_names])
 
 names(predictor_estimates) <- c("intercept", predictor_names,
-                                paste0("I(", quadratic_terms_names, "^2)"),
-				paste0("year:", interaction_terms_names))
+                                paste0("I(", quadratic_terms_names, "^2)"))
 
 
 
@@ -128,7 +121,7 @@ pred_estimates_sum <- apply(pred_estimates_wcoeffs, 1, sum)
 # check this
 # sonst zeroinflated part.  wahrscheinlichkeit das null ist durhc 1- --> wahrscheinl das es 1 ist
 # wahrscheinlich macht es auch sinn da prediktoren drin zu haben in zeroinflated part
-pred_estimates_calc <- exp(pred_estimates_sum) * (1 - (1/(1 + exp(-(coeff_(Intercept))))))
+pred_estimates_calc <- exp(pred_estimates_sum)
 pred_estimates_weighted <- pred_estimates_calc * coeff_weights$w_aic
 return(sum(pred_estimates_weighted))
                 }
