@@ -36,9 +36,9 @@ print(paste("year " , year_to_predict))
 indir_fun <- "~/orangutan_density_distribution/src/functions/"
 
 
-#-----------#
-# LOAD DATA #
-#-----------#
+#-------------------------------#
+# Load and prepare coefficients #
+#-------------------------------#
 # Load functions
 source(file.path(indir_fun, "generic/path.to.current.R"))
 print("function loaded")
@@ -75,6 +75,9 @@ predictor_names_coeffs <- predictor_names_coeffs[predictor_names_coeffs != "(Int
 # don't include interaction or quadratic term
 predictor_names <- predictor_names_coeffs[!grepl("I(*)", predictor_names_coeffs)]
 
+#----------------------------#
+# Load and prepare estimates #
+#----------------------------#
 print(paste("these are predictor names: ", predictor_names))
 predictors_path <- path.to.current(indir_predictors, paste0("predictors_abundance_",
                                                  year_to_predict),"rds")
