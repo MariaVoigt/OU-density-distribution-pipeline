@@ -1,4 +1,3 @@
-
 #-----------------------------------------------#
 # Model prediction:                             #
 # the next part is for making model predictions #
@@ -149,6 +148,9 @@ saveRDS(pred_per_cell,
                            paste0("abundance_pred_per_cell_",
                                   year_to_predict,"_",
                                   Sys.Date(), ".rds")))
+
+
+
 
 
 print(paste(Sys.time(), "3. wrote results and done :-)"))
