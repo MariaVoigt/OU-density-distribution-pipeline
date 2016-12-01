@@ -37,7 +37,9 @@ year_to_predict <- as.numeric(args[4])
 print(paste("year " , year_to_predict))
 
 indir_fun <- "~/orangutan_density_distribution/src/functions/"
-
+crs_aea <- "+proj=aea +lat_1=7 +lat_2=-32 +lat_0=-15 +lon_0=125 +x_0=0
+  +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs" # final projection
+  
 
 #-------------------------------#
 # Load and prepare coefficients #
@@ -156,35 +158,44 @@ saveRDS(pred_per_cell,
                                 year_to_predict,"_",
                                 Sys.Date(), ".rds")))
 
-
+save.image(file.path(outdir, "image_before_map.RData"))
 
 #-----------------------#
 # convert output to map #
 #-----------------------#
 print(paste(Sys.time(), "3. Start making map"))
-estimates_prediction <- cbind(predictors, pred_per_cell) %>%
+
+geography_grid_path <- path.to.current(indir_predictors,
+                                       paste0("geography_", year_to_predict), "rds")
+geography_grid <- readRDS(geography_grid_path)
+
+geography_grid_for_join <- dplyr::select(geography_grid, id, x_start, y_start)
+
+pred_per_cell_sp <- left_join(geography_grid_for_join,
+                                  pred_per_cell, by = "id") %>%
                         as.data.frame()
 
 
-estimates_prediction_sp <- SpatialPointsDataFrame(coords = cbind(estimates_prediction$x_start,
-                                                 estimates_prediction$y_start),
-                                  data = estimates_prediction,
+pred_per_cell_sp <- SpatialPointsDataFrame(coords =
+                               cbind(pred_per_cell_sp$x_start,
+                                     pred_per_cell_sp$y_start),
+                                  data = pred_per_cell_sp,
                                   proj4string = CRS(crs_aea),  match.ID = T)
 
-writeOGR(estimates_prediction_sp, dsn = outdir,
-         layer = paste0("prediction_shp_", year), driver = "ESRI Shapefile")
+writeOGR(pred_per_cell_sp, dsn = outdir,
+         layer = paste0("prediction_shp_", year_to_predict), driver = "ESRI Shapefile")
 # pay attention that the tif gets a new name because later we delete all
 # with the same name as the shapefile
-system_string <- paste0("gdal_rasterize -ot 'Float32' -a prdctn_ ",
-                        "-tr 1000.0 1000.0 -l prediction_sample_",
-                         year," ", outdir, "/",
-                        "prediction_shp_", year, ".shp",
+system_string <- paste0("gdal_rasterize -ot 'Float32' -a abndnc_ ",
+                        "-tr 1000.0 1000.0 -l prediction_shp_",
+                         year_to_predict," ", outdir, "/",
+                        "prediction_shp_", year_to_predict, ".shp",
                         " ", outdir, "/",
-                        "prediction_map_", year, ".tif")
+                        "prediction_map_", year_to_predict, ".tif")
 system(system_string)
 #delete the shapefile again because clogs up my system
 system_string_del <- paste0("rm -f ", outdir, "/prediction_shp_",
-                            year, ".*")
+                            year_to_predict, ".*")
 system(system_string_del)
 
 
