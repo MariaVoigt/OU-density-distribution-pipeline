@@ -13,7 +13,10 @@ library(foreach)
 library(doParallel)
 library(reshape2)
 library(dplyr)
-
+library(rgdal)
+library(sp)
+library(rgeos)
+library(raster)
 
 cl <- makeForkCluster(outfile = "")
 registerDoParallel(cl)
@@ -145,7 +148,7 @@ print(paste(Sys.time(), "range predicted for ", year_to_predict,
 print(paste(Sys.time(), "density predicted for ", year_to_predict,
             mean(pred_per_cell$abundance_pred)))
 print(paste(Sys.time(), "nr of values over 10 ", year_to_predict,
-            sum(pred_per_cell$abundance_pred) > 10))
+            sum(pred_per_cell$abundance_pred > 10)))
 
 saveRDS(pred_per_cell,
         file = file.path(outdir,
