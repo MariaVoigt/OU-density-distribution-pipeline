@@ -84,7 +84,7 @@ predictors <- readRDS(predictors_path)
 
 # these are the predictors that will be used in the model
 predictor_names <- c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
-                     "dom_T_PH", "peatswamp", "lowland_forest",
+                     "peatswamp", "lowland_forest",
                      "lower_montane_forest", "deforestation",
                      "human_pop_dens", "ou_killing_prediction",
                      "perc_muslim" )
@@ -136,7 +136,6 @@ all_model_terms <- built.all.models(env.cov.names =
                                          "rain_var",
                                          "rain_dry",
                                          "dom_T_OC",
-                                         "dom_T_PH",
                                          "peatswamp",
                                          "lowland_forest",
                                          "lower_montane_forest",
@@ -158,7 +157,6 @@ m_terms <- c("1",
              "rain_var",
              "rain_dry",
              "dom_T_OC",
-             "dom_T_PH",
              "peatswamp",
              "lowland_forest",
              "lower_montane_forest",
@@ -212,7 +210,6 @@ write.csv(dfbeta_frame, file.path(outdir,
 
 # #run models
 print(paste("8. Start running models", Sys.time()))
-save.image(file.path(outdir, "image_before_fitting.RData"))
 
 results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
 #system.time(results_res <- foreach (i = 1:10, .combine = rbind) %do% {
@@ -310,5 +307,5 @@ write.csv(summary_mean_coefficients,
                                   Sys.Date(), ".csv")))
 
 
-
+save.image(file.path(outdir, paste0("abundance_model_fitting_", Sys.Date(), ".RData")))
 print(paste("11. finished script, finally, at", Sys.time()))
