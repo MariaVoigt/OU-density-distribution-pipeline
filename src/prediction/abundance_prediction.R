@@ -148,12 +148,46 @@ print(paste(Sys.time(), "nr of values over 10 ", year_to_predict,
             sum(pred_per_cell$abundance_pred) > 10))
 
 saveRDS(pred_per_cell,
-          file = file.path(outdir,
-                           paste0("abundance_pred_per_cell_",
-                                  year_to_predict,"_",
-                                  Sys.Date(), ".rds")))
+        file = file.path(outdir,
+                         paste0("abundance_pred_per_cell_",
+                                year_to_predict,"_",
+                                Sys.Date(), ".rds")))
 
 
+
+#-----------------------#
+# convert output to map #
+#-----------------------#
+print(paste(Sys.time(), "3. Start making map"))
+estimates_prediction <- cbind(predictors, pred_per_cell) %>%
+                        as.data.frame()
+
+
+estimates_prediction_sp <- SpatialPointsDataFrame(coords = cbind(estimates_prediction$x_start,
+                                                 estimates_prediction$y_start),
+                                  data = estimates_prediction,
+                                  proj4string = CRS(crs_aea),  match.ID = T)
+
+writeOGR(estimates_prediction_sp, dsn = outdir,
+         layer = paste0("prediction_shp_", year), driver = "ESRI Shapefile")
+# pay attention that the tif gets a new name because later we delete all
+# with the same name as the shapefile
+system_string <- paste0("gdal_rasterize -ot 'Float32' -a prdctn_ ",
+                        "-tr 1000.0 1000.0 -l prediction_sample_",
+                         year," ", outdir, "/",
+                        "prediction_shp_", year, ".shp",
+                        " ", outdir, "/",
+                        "prediction_map_", year, ".tif")
+system(system_string)
+#delete the shapefile again because clogs up my system
+system_string_del <- paste0("rm -f ", outdir, "/prediction_shp_",
+                            year, ".*")
+system(system_string_del)
+
+
+
+save.image(file.path(outdir, paste0("abundance_pred_image_", year_to_predict, "_",
+                                    Sys.Date(), ".RData")))
 
 
 
