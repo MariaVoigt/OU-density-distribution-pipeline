@@ -142,10 +142,11 @@ print(paste(Sys.time(), "sum predicted for ", year_to_predict,
             sum(pred_per_cell$abundance_pred)))
 print(paste(Sys.time(), "range predicted for ", year_to_predict,
             range(pred_per_cell$abundance_pred)))
+print(paste(Sys.time(), "density predicted for ", year_to_predict,
+            mean(pred_per_cell$abundance_pred)))
+print(paste(Sys.time(), "nr of values over 10 ", year_to_predict,
+            sum(pred_per_cell$abundance_pred) > 10))
 
-
-save.image(file.path(outdir, paste0("abundance_pred_image_", year_to_predict, "_",
-                                    Sys.Date(), ".RData")))
 saveRDS(pred_per_cell,
           file = file.path(outdir,
                            paste0("abundance_pred_per_cell_",
@@ -156,4 +157,4 @@ saveRDS(pred_per_cell,
 
 
 
-print(paste(Sys.time(), "3. wrote results and done :-)"))
+print(paste(Sys.time(), "4. wrote results and done :-)"))
