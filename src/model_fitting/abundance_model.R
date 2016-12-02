@@ -215,12 +215,12 @@ results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
 #system.time(results_res <- foreach (i = 1:10, .combine = rbind) %do% {
     # create objects for storing results
     # modelinfo + schätzung von coeffizienten und pi values
-    result <- as.data.frame(matrix(NA, ncol = 3 * length(model_terms) + 3,
+    result <- as.data.frame(matrix(NA, ncol = 3 * length(model_terms) + 5,
                                         nrow = 1))
     names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
                             paste("P",model_terms,sep = "_"),
                             paste("SE", model_terms, sep = "_"),
-                       "AIC", "R2")
+                       "theta", "SE.theta", "AIC", "R2")
 
     # model fitting
     model <- as.formula(
@@ -248,6 +248,10 @@ results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
       summary(res)$coefficients[ , "Std. Error"][names(
         res$coefficients)]#add line for SE
 
+    # theta
+   result[ , "theta"] <- summary(res)$theta
+   result[ , "SE.theta"] <- summary(res)$SE.theta
+    
     # aic in last column,
     result[ , "AIC"] <- extractAIC(res)[2]
 
