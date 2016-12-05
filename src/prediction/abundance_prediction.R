@@ -39,7 +39,7 @@ print(paste("year " , year_to_predict))
 indir_fun <- "~/orangutan_density_distribution/src/functions/"
 crs_aea <- "+proj=aea +lat_1=7 +lat_2=-32 +lat_0=-15 +lon_0=125 +x_0=0
   +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs" # final projection
-  
+
 
 #-------------------------------#
 # Load and prepare coefficients #
@@ -49,14 +49,15 @@ source(file.path(indir_fun, "generic/path.to.current.R"))
 print("function loaded")
 
 # Load coefficients and weights
-coeff_weights_path <- path.to.current(indir, "coeff_weights", "rds" )
-print(paste("this is coeff_weights_path:", coeff_weights_path))
-coeff_weights <- readRDS(coeff_weights_path)
+abundMod_results_path <- path.to.current(indir, "abundMod_results", "rds" )
+print(paste("this is abundMod_results_path:", abundMod_results_path))
+abundMod_results <- readRDS(abundMod_results_path)
 # exclude the first column, which contains models, exclude the coefficient of the
 # autocorellation term and the weighted aic of the model
 # we are excluding the autocorellation term, because the mean is zero, and thus
 # it will not have an influence on the overall outcome
-coeffs <- coeff_weights[ , 2:(length(coeff_weights) - 2)]
+coeffs <- abundMod_results[ ,  grepl(x=colnames(abundMod_results),
+                                     pattern="coeff")]
 # all predictors that are not included in a specific model have NA as their
 # coefficient, which is replaced by 0, so that the estimate is also 0
 coeffs[is.na(coeffs) == T] <- 0
