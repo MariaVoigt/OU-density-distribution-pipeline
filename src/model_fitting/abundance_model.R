@@ -293,9 +293,13 @@ results_out <- right_join(results_res, c_set,  by="AIC")
 results_out <- results_out[order(results_out$AIC), ]
 
 
-# save the coefficients and weights for the prediction
+# save the relevant output for the prediction and the validation
 saveRDS(abundMod_result, file = file.path(outdir, paste0("abundMod_results",
                                                 Sys.Date(), ".rds")))
+
+# these are the terms that go into the model (need to guarantee same things in validation)
+saveRDS(m_terms, file = file.path(outdir, paste0("m_terms",
+                                                 Sys.Date(), ".rds")))
 
 # save the model results for interpretation
 write.csv(results_out,
