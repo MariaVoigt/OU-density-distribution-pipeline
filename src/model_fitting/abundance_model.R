@@ -251,7 +251,7 @@ results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
     # theta
    result[ , "theta"] <- summary(res)$theta
    result[ , "SE.theta"] <- summary(res)$SE.theta
-    
+
     # aic in last column,
     result[ , "AIC"] <- extractAIC(res)[2]
 
@@ -276,9 +276,7 @@ c_set <- cbind(as.character(results_res$model), conf.set(aic = results_res$AIC) 
 names(c_set) <- c("model", names(c_set)[-1])
 
 # for the export
-export <- results_res %>%
-  dplyr::select(model,
-                contains("coeff")) %>%
+abundMod_result <- results_res %>%
   mutate(w_aic = c_set$w.aic)
 
 
@@ -296,18 +294,18 @@ results_out <- results_out[order(results_out$AIC), ]
 
 
 # save the coefficients and weights for the prediction
-saveRDS(export, file = file.path(outdir, paste0("coeff_weights_",
+saveRDS(abundMod_result, file = file.path(outdir, paste0("abundMod_results",
                                                 Sys.Date(), ".rds")))
 
 # save the model results for interpretation
 write.csv(results_out,
           file = file.path(outdir,
-                           paste0("model_results_abundance_model_",
+                           paste0("abundMod_results",
                                                Sys.Date(), ".csv")))
 # save the mean coefficients for interpretation
 write.csv(summary_mean_coefficients,
           file = file.path(outdir,
-                           paste0("mean_coefficients_abundance_model_",
+                           paste0("abundMod_mean_coefficients",
                                   Sys.Date(), ".csv")))
 
 
