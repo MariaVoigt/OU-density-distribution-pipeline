@@ -276,7 +276,7 @@ c_set <- cbind(as.character(results_res$model), conf.set(aic = results_res$AIC) 
 names(c_set) <- c("model", names(c_set)[-1])
 
 # for the export
-abundMod_result <- results_res %>%
+abundMod_results <- results_res %>%
   mutate(w_aic = c_set$w.aic)
 
 
@@ -294,7 +294,7 @@ results_out <- results_out[order(results_out$AIC), ]
 
 
 # save the relevant output for the prediction and the validation
-saveRDS(abundMod_result, file = file.path(outdir, paste0("abundMod_results",
+saveRDS(abundMod_results, file = file.path(outdir, paste0("abundMod_results",
                                                 Sys.Date(), ".rds")))
 
 # these are the terms that go into the model (need to guarantee same things in validation)
