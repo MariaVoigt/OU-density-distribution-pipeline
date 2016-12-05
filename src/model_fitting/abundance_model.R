@@ -298,7 +298,7 @@ saveRDS(abundMod_results, file = file.path(outdir, paste0("abundMod_results",
                                                 Sys.Date(), ".rds")))
 
 # these are the terms that go into the model (need to guarantee same things in validation)
-saveRDS(m_terms, file = file.path(outdir, paste0("m_terms",
+saveRDS(m_terms, file = file.path(outdir, paste0("m_terms_",
                                                  Sys.Date(), ".rds")))
 
 # save the model results for interpretation
