@@ -265,7 +265,7 @@ results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
                                             newdata = predictors_obs_pred,
                                             type = "response")
 
-    comparison_lm = lm(predictors_obs$nr_ou_per_km2 ~ prediction_per_transect )
+    comparison_lm = lm(log(predictors_obs$nr_ou_per_km2) ~ log(prediction_per_transect) )
 
     result[ , "R2"] <- summary(comparison_lm)$r.squared
     return(result)
