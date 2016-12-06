@@ -294,7 +294,7 @@ results_out <- results_out[order(results_out$AIC), ]
 
 
 # save the relevant output for the prediction and the validation
-saveRDS(abundMod_results, file = file.path(outdir, paste0("abundMod_results",
+saveRDS(abundMod_results, file = file.path(outdir, paste0("abundMod_results_",
                                                 Sys.Date(), ".rds")))
 
 # these are the terms that go into the model (need to guarantee same things in validation)
@@ -304,12 +304,12 @@ saveRDS(m_terms, file = file.path(outdir, paste0("m_terms_",
 # save the model results for interpretation
 write.csv(results_out,
           file = file.path(outdir,
-                           paste0("abundMod_results",
+                           paste0("abundMod_results_",
                                                Sys.Date(), ".csv")))
 # save the mean coefficients for interpretation
 write.csv(summary_mean_coefficients,
           file = file.path(outdir,
-                           paste0("abundMod_mean_coefficients",
+                           paste0("abundMod_mean_coefficients_",
                                   Sys.Date(), ".csv")))
 
 
