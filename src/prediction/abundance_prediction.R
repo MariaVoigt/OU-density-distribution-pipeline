@@ -120,17 +120,15 @@ names(predictor_estimates) <- c("intercept", predictor_names,
 # more correct in terms of being sure that the right thing is done,
 # but takes a bit longer (52s, to 35s for 100 rows)
 ## PLUS PAY ATTENTION, IF PREDICTIONS NOT SAME NROW--> VALUES GET RECYCLED
+
 print(paste("1. start pred_per_cell", Sys.time()))
 pred_per_cell <- foreach(i = 1:nrow(predictor_estimates), .combine = c)  %dopar% {
 # pred_per_cell <- foreach(i = 1:100, .combine = c)  %dopar% {
 t_predictor_estimates <- t( predictor_estimates[i, ])
 pred_estimates_wcoeffs  <- data.frame(mapply(`*`, coeffs, t_predictor_estimates, SIMPLIFY = F))
 pred_estimates_sum <- apply(pred_estimates_wcoeffs, 1, sum)
-# check this
-# sonst zeroinflated part.  wahrscheinlichkeit das null ist durhc 1- --> wahrscheinl das es 1 ist
-# wahrscheinlich macht es auch sinn da prediktoren drin zu haben in zeroinflated part
     pred_estimates_weighted <- pred_estimates_sum * abundMod_results$w_aic
-    pred_estimates_calc <- sum(pred_estimates_weigthed)
+    pred_estimates_calc <- sum(pred_estimates_weighted)
 return(exp(pred_estimates_calc))
 }
 
