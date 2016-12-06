@@ -129,10 +129,10 @@ pred_estimates_sum <- apply(pred_estimates_wcoeffs, 1, sum)
 # check this
 # sonst zeroinflated part.  wahrscheinlichkeit das null ist durhc 1- --> wahrscheinl das es 1 ist
 # wahrscheinlich macht es auch sinn da prediktoren drin zu haben in zeroinflated part
-pred_estimates_calc <- exp(pred_estimates_sum)
-pred_estimates_weighted <- pred_estimates_calc * coeff_weights$w_aic
-return(sum(pred_estimates_weighted))
-                }
+    pred_estimates_weighted <- pred_estimates_sum * coeff_weights$w_aic
+    pred_estimates_calc <- sum(pred_estimates_weigthed)
+return(exp(pred_estimates_calc))
+}
 
 print(paste(Sys.time(), "2. finished dopar loop"))
 
