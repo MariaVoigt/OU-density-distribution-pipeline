@@ -36,13 +36,21 @@ print(paste("indir ", indir))
 outdir <- args[2]
 print(paste("outdir ", outdir))
 
+# fix this here
 do_stability <- args[3]
+exclude_year <- args[4]
 
 if(is.na(do_stability)){do_stability <- FALSE} else{
   if (do_stability == "do_stability"){do_stability <- TRUE} else{
     stop("there is the wrong input in do_stability")
   }
 }
+
+
+  if (!(exclude_year %in% c(1999:2015)) | !is.na(exclude_year) ){
+    stop(paste("there is a wrong input in exclude_year", exclude_year))
+  }
+
 
 indir_fun <- "../functions"
 print(paste("indir_fun", indir_fun))
@@ -103,6 +111,9 @@ predictors_obs <- predictors %>%
   inner_join(transects, by = "id" ) %>%
   dplyr::filter(group != "aerial")
 
+if (!is.na(exclude_year)){
+  predictors_obs <- filter(predictors_obs, year != exclude_year)
+}
 
 predictors_obs$ou_dens <- (predictors_obs$nr_nests/ (predictors_obs$length_km * ESW * 2))  *
   (1/(predictors_obs$nest_decay * NCS * PNB))
@@ -292,26 +303,36 @@ c_set$w.aic <- NULL
 results_out <- right_join(results_res, c_set,  by="AIC")
 results_out <- results_out[order(results_out$AIC), ]
 
+if (is.na(exclude_year)){
+  name_suffix <- ""} else {
+    name_suffix <- paste0(exclude_year, "_")
+  }
 
 # save the relevant output for the prediction and the validation
 saveRDS(abundMod_results, file = file.path(outdir, paste0("abundMod_results_",
+                                                          name_suffix,
                                                 Sys.Date(), ".rds")))
 
 # these are the terms that go into the model (need to guarantee same things in validation)
 saveRDS(m_terms, file = file.path(outdir, paste0("m_terms_",
+                                                 name_suffix,
                                                  Sys.Date(), ".rds")))
 
 # save the model results for interpretation
 write.csv(results_out,
           file = file.path(outdir,
                            paste0("abundMod_results_",
-                                               Sys.Date(), ".csv")))
+                                  name_suffix,
+                                  Sys.Date(), ".csv")))
 # save the mean coefficients for interpretation
 write.csv(summary_mean_coefficients,
           file = file.path(outdir,
                            paste0("abundMod_mean_coefficients_",
+                                  name_suffix,
                                   Sys.Date(), ".csv")))
 
 
-save.image(file.path(outdir, paste0("abundance_model_fitting_", Sys.Date(), ".RData")))
+save.image(file.path(outdir, paste0("abundance_model_fitting_",
+                                    name_suffix,
+                                    Sys.Date(), ".RData")))
 print(paste("11. finished script, finally, at", Sys.time()))
