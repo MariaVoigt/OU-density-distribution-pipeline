@@ -17,7 +17,7 @@
 #$ -m ea
 
 
-module load R
+module load R/3.3.1-1
 
 if [[ -z $1 ]] ; then
   echo "qsub $0 /path/to/input"
