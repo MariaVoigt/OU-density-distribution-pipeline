@@ -1,56 +1,67 @@
 #--------------------------#
 # Fit abundance model      #
 #--------------------------#
-rm(list = ls())
-gc()
-
 
 #----------------#
 # Load Libraries #
 #----------------#
-library(dplyr)
-library(tidyr)
-library(stringr)
-library(MASS)
-library(gtools)
-library(reshape2)
-library(parallel)
-library(foreach)
-library(doParallel)
-library(pscl)
 
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(stringr))
+suppressPackageStartupMessages(library(MASS))
+suppressPackageStartupMessages(library(gtools))
+suppressPackageStartupMessages(library(reshape2))
+suppressPackageStartupMessages(library(parallel))
+suppressPackageStartupMessages(library(foreach))
+suppressPackageStartupMessages(library(doParallel))
+suppressPackageStartupMessages(library(optparse))
+
+
+#-----------------------------#
+# command line option parsing #
+#-----------------------------#
+
+option_list <- list (
+  make_option(c("-i", "--input-directory"),  dest = "input_directory", type = "character", help = "directory with input files",  metavar = "/path/to/input-dir"),
+  make_option(c("-o", "--output-directory"), dest = "output_directory", type = "character", help = "directory with output files", metavar = "/path/to/output-dir"),
+  make_option("--exclude-year",    dest = "exclude_year", type = "integer",   help = "year to exclude", metavar = "2015"),
+  make_option("--stability",       action="store_true", default=FALSE, help="do stability analysis")
+)
+
+options <- parse_args(OptionParser(option_list=option_list))
+
+if (is.null(options$input_directory)) {
+  stop("input directory not specified, check --help")
+}
+
+if (is.null(options$output_directory)) {
+  stop("output directory not specified, check --help")
+}
+
+exclude_year_possibilities <- c(1999:2015)
+
+if (!is.na(options$exclude_year) && !(options$exclude_year %in% exclude_year_possibilities)) {
+  stop(paste("exclude year must be between", min(exclude_year_possibilities), "and", max(exclude_year_possibilities)))
+}
+
+# input directory
+indir <- options$input_directory
+print(paste("indir", indir))
+
+# directory in which output is written
+outdir <- options$output_directory
+print(paste("outdir", outdir))
+
+do_stability <- options$stability
+print(paste("stability", do_stability))
+
+exclude_year <- options$exclude_year
+print(paste("exclude year", exclude_year))
 
 #---------#
 # Globals #
 #---------#
-
-args <- commandArgs(trailingOnly = TRUE)
-print(paste("args", args))
-# the directory in which the files are
-
-indir <- args[1]
-
-print(paste("indir ", indir))
-# directory in which output is written
-
-outdir <- args[2]
-print(paste("outdir ", outdir))
-
-# fix this here
-do_stability <- args[3]
-exclude_year <- args[4]
-
-if(is.na(do_stability)){do_stability <- FALSE} else{
-  if (do_stability == "do_stability"){do_stability <- TRUE} else{
-    stop("there is the wrong input in do_stability")
-  }
-}
-
-
-  if (!(exclude_year %in% c(1999:2015)) | !is.na(exclude_year) ){
-    stop(paste("there is a wrong input in exclude_year", exclude_year))
-  }
-
 
 indir_fun <- "../functions"
 print(paste("indir_fun", indir_fun))

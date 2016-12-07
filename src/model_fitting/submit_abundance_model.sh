@@ -17,7 +17,7 @@
 
 #$ -cwd
 
-module load R/3.2.3-1
+module load R/3.3.1-1
 
 
 if [[ -z $1 ]] ; then
@@ -32,7 +32,8 @@ fi
 
 INPUT_PATH=$1
 OUTPUT_PATH=/work/$USER/$JOB_NAME-$JOB_ID
-DO_STABILITY=$2
+
+shift
 
 mkdir $OUTPUT_PATH
 
@@ -40,9 +41,6 @@ export MC_CORES=${NSLOTS:-1}
 
 Rscript \
     abundance_model.R \
-    $INPUT_PATH \
-    $OUTPUT_PATH \
-    $DO_STABILITY
-
-
-
+    -i $INPUT_PATH \
+    -o $OUTPUT_PATH \
+    "$@"
