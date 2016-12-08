@@ -114,7 +114,8 @@ print("how many rows with na in scaled_value")
 nrow(predictors[is.na(predictors$scaled_value),  ])
 # deleting is.na values here
 predictors <- predictors[!is.na(predictors$scaled_value), ]
-predictors_obs <- predictors %>%
+# Rename here1
+predictors_obs_compl <- predictors %>%
   dplyr::filter(predictor %in% predictor_names) %>%
   dcast(id + year ~ predictor,  value.var = "scaled_value")%>%
   inner_join(geography, by = "id")%>%
@@ -123,8 +124,8 @@ predictors_obs <- predictors %>%
   dplyr::filter(group != "aerial")
 
 if (!is.na(exclude_year)){
-  predictors_obs <- filter(predictors_obs, year != exclude_year)
-}
+  predictors_obs <- filter(predictors_obs_complete, year != exclude_year)
+} else {predictors_obs <- predictors_obs_compl}
 
 predictors_obs$ou_dens <- (predictors_obs$nr_nests/ (predictors_obs$length_km * ESW * 2))  *
   (1/(predictors_obs$nest_decay * NCS * PNB))
@@ -280,7 +281,11 @@ results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
     # what do I need to do
     # I need to get only the prediction estimates columns that are true in
     # all_model_terms[i, ]==1
-    predictors_obs_pred <- predictors_obs
+    if (!is.na(exclude_year)){
+        predictors_obs_pred <- predictors_obs_compl[predictors_obs_compl$year ==
+                                                    exclude_year, ]
+    } else {
+    predictors_obs_pred <- predictors_obs}
     predictors_obs_pred$offset_term <- 0
     # prediction estimates
     prediction_per_transect <-  predict.glm(res,
