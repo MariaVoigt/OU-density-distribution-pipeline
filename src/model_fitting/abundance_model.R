@@ -115,7 +115,7 @@ nrow(predictors[is.na(predictors$scaled_value),  ])
 # deleting is.na values here
 predictors <- predictors[!is.na(predictors$scaled_value), ]
 # Rename here1
-predictors_obs_compl <- predictors %>%
+predictors_obs <- predictors %>%
   dplyr::filter(predictor %in% predictor_names) %>%
   dcast(id + year ~ predictor,  value.var = "scaled_value")%>%
   inner_join(geography, by = "id")%>%
@@ -123,9 +123,6 @@ predictors_obs_compl <- predictors %>%
   inner_join(transects, by = "id" ) %>%
   dplyr::filter(group != "aerial")
 
-if (!is.na(exclude_year)){
-  predictors_obs <- filter(predictors_obs_compl, year != exclude_year)
-} else {predictors_obs <- predictors_obs_compl}
 
 predictors_obs$ou_dens <- (predictors_obs$nr_nests/ (predictors_obs$length_km * ESW * 2))  *
   (1/(predictors_obs$nest_decay * NCS * PNB))
@@ -150,6 +147,11 @@ print("look at predictors_obs")
 str(predictors_obs)
 summary(predictors_obs)
 
+
+# now exclude the year that needs to be excluded
+if (!is.na(exclude_year)){
+    predictors_obs <- predictors_obs[predictors_obs$unscaled_year != exclude_year, ]
+    predictors_excluded_year <- predictors_obs[predictors_obs$unscaled_year == exclude_year, ] }
  print(paste("3. start making all_model_terms", Sys.time()))
 
  # #build models needed for analysis with a function
@@ -251,7 +253,8 @@ names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
                        "theta", "SE.theta", "AIC", "R2", "R2_cross")
 }
 
-results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar%{
+results_res <- foreach(i = 1:nrow(all_model_terms),
+                       .combine = rbind) %dopar%{
     model <- as.formula(
             paste("nr_nests ~",
 	    paste(m_terms[all_model_terms[i, ] == 1], collapse = "+"),
@@ -300,10 +303,9 @@ results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar%{
 
     if (!is.na(exclude_year)){
   prediction_transect_excluded_year <-  predict.glm(res,
-                               newdata = predictors_obs_compl[predictors_obs_compl$year ==
-			       exclude_year, ], type = "response")
- cross_lm = lm(log(predictors_obs_compl[predictors_obs_compl$year ==
-                                             exclude_year, "nr_ou_per_km2"] + 1) ~
+                               newdata = predictors_excluded_year,
+			       type = "response")
+ cross_lm = lm(log(predictors_excluded_year$nr_ou_per_km2 + 1) ~
                      log(prediction_transect_excluded_year + 1))
 
   result[ , "R2_cross"] <- summary(cross_lm)$r.squared
