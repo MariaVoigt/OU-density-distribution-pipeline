@@ -124,7 +124,7 @@ predictors_obs_compl <- predictors %>%
   dplyr::filter(group != "aerial")
 
 if (!is.na(exclude_year)){
-  predictors_obs <- filter(predictors_obs_complete, year != exclude_year)
+  predictors_obs <- filter(predictors_obs_compl, year != exclude_year)
 } else {predictors_obs <- predictors_obs_compl}
 
 predictors_obs$ou_dens <- (predictors_obs$nr_nests/ (predictors_obs$length_km * ESW * 2))  *
@@ -234,32 +234,37 @@ write.csv(dfbeta_frame, file.path(outdir,
 # #run models
 print(paste("8. Start running models", Sys.time()))
 
-results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
-#system.time(results_res <- foreach (i = 1:10, .combine = rbind) %do% {
-    # create objects for storing results
-    # modelinfo + schätzung von coeffizienten und pi values
-    result <- as.data.frame(matrix(NA, ncol = 3 * length(model_terms) + 5,
-                                        nrow = 1))
+
+if (is.na(exclude_year)){   
+result <- as.data.frame(matrix(NA, ncol = 3 * length(model_terms) + 5,
+                               nrow = 1))
+names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
+                   paste("P",model_terms,sep = "_"),
+                   paste("SE", model_terms, sep = "_"),
+		   "theta", "SE.theta", "AIC", "R2")
+} else {
+    result <- as.data.frame(matrix(NA, ncol = 3 * length(model_terms) + 6,
+                                   nrow = 1))
     names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
-                            paste("P",model_terms,sep = "_"),
-                            paste("SE", model_terms, sep = "_"),
-                       "theta", "SE.theta", "AIC", "R2")
+                       paste("P",model_terms,sep = "_"),
+                       paste("SE", model_terms, sep = "_"),
+                       "theta", "SE.theta", "AIC", "R2", "R2_cross")
+}
 
-    # model fitting
+results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar%{
     model <- as.formula(
-        paste("nr_nests ~",
-              paste(m_terms[all_model_terms[i, ] == 1], collapse = "+"),
-              "+ offset(offset_term)"))
-    res <- glm.nb(model, data = predictors_obs)
+            paste("nr_nests ~",
+	    paste(m_terms[all_model_terms[i, ] == 1], collapse = "+"),
+            "+ offset(offset_term)"))
+            res <- glm.nb(model, data = predictors_obs)
 
-    # model
+
+# model
     result[ , "model"] <- paste(m_terms[all_model_terms[i, ] == 1], collapse = "+")
-
-
+    
     # coefficients
     model_coefficients <- as.vector(res$coefficients)
     result[ , paste0("coeff_", names(res$coefficients))] <- model_coefficients
-
 
     # p value
     result[ , paste0("P_", names(res$coefficients))] <-
@@ -281,21 +286,30 @@ results_res <- foreach(i = 1:nrow(all_model_terms), .combine = rbind) %dopar% {
     # what do I need to do
     # I need to get only the prediction estimates columns that are true in
     # all_model_terms[i, ]==1
-    if (!is.na(exclude_year)){
-        predictors_obs_pred <- predictors_obs_compl[predictors_obs_compl$year ==
-                                                    exclude_year, ]
-    } else {
-    predictors_obs_pred <- predictors_obs}
+    predictors_obs_pred <- predictors_obs
     predictors_obs_pred$offset_term <- 0
     # prediction estimates
     prediction_per_transect <-  predict.glm(res,
                                             newdata = predictors_obs_pred,
                                             type = "response")
 
-    comparison_lm = lm(log(predictors_obs$nr_ou_per_km2 + 1) ~ log(prediction_per_transect + 1) )
+    comparison_lm = lm(log(predictors_obs$nr_ou_per_km2 + 1) ~
+                       log(prediction_per_transect + 1) )
 
     result[ , "R2"] <- summary(comparison_lm)$r.squared
-    return(result)
+
+    if (!is.na(exclude_year)){
+  prediction_transect_excluded_year <-  predict.glm(res,
+                               newdata = predictors_obs_compl[predictors_obs_compl$year ==
+			       exclude_year, ], type = "response")
+ cross_lm = lm(log(predictors_obs_compl[predictors_obs_compl$year ==
+                                             exclude_year, "nr_ou_per_km2"] + 1) ~
+                     log(prediction_transect_excluded_year + 1))
+
+  result[ , "R2_cross"] <- summary(cross_lm)$r.squared
+    }
+
+  return(result)
 }
 
 
