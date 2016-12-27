@@ -150,8 +150,8 @@ summary(predictors_obs)
 
 # now exclude the year that needs to be excluded
 if (!is.na(exclude_year)){
-    predictors_obs <- predictors_obs[predictors_obs$unscaled_year != exclude_year, ]
     predictors_excluded_year <- predictors_obs[predictors_obs$unscaled_year == exclude_year, ] }
+    predictors_obs <- predictors_obs[predictors_obs$unscaled_year != exclude_year, ]
  print(paste("3. start making all_model_terms", Sys.time()))
 
  # #build models needed for analysis with a function
@@ -253,6 +253,8 @@ names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
                        "theta", "SE.theta", "AIC", "R2", "R2_cross")
 }
 
+
+save.image(file.path(outdir, "temp_image_before_for.RData"))
 results_res <- foreach(i = 1:nrow(all_model_terms),
                        .combine = rbind) %dopar%{
     model <- as.formula(
@@ -305,7 +307,7 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
   prediction_transect_excluded_year <-  predict.glm(res,
                                newdata = predictors_excluded_year,
 			       type = "response")
- cross_lm = lm(log(predictors_excluded_year$nr_ou_per_km2 + 1) ~
+  cross_lm = lm(log(predictors_excluded_year$nr_ou_per_km2 + 1) ~
                      log(prediction_transect_excluded_year + 1))
 
   result[ , "R2_cross"] <- summary(cross_lm)$r.squared
