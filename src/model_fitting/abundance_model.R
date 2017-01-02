@@ -1,4 +1,3 @@
-#--------------------------#
 # Fit abundance model      #
 #--------------------------#
 
@@ -237,7 +236,7 @@ write.csv(dfbeta_frame, file.path(outdir,
 print(paste("8. Start running models", Sys.time()))
 
 
-if (is.na(exclude_year)){   
+if (is.na(exclude_year)){
 result <- as.data.frame(matrix(NA, ncol = 3 * length(model_terms) + 5,
                                nrow = 1))
 names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
@@ -266,7 +265,7 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
 
 # model
     result[ , "model"] <- paste(m_terms[all_model_terms[i, ] == 1], collapse = "+")
-    
+
     # coefficients
     model_coefficients <- as.vector(res$coefficients)
     result[ , paste0("coeff_", names(res$coefficients))] <- model_coefficients
@@ -293,7 +292,7 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
     # all_model_terms[i, ]==1
     predictors_obs_pred <- predictors_obs
     predictors_obs_pred$offset_term <- 0
-    # prediction estimates
+    # Comparison of observed data vs prediction
     prediction_per_transect <-  predict.glm(res,
                                             newdata = predictors_obs_pred,
                                             type = "response")
@@ -302,7 +301,8 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
                        log(prediction_per_transect + 1) )
 
     result[ , "R2"] <- summary(comparison_lm)$r.squared
-
+    # if we are excluding years, this is the test of predicted data vs observed data
+    # for this year (with which the model wasn't fitted)
     if (!is.na(exclude_year)){
   prediction_transect_excluded_year <-  predict.glm(res,
                                newdata = predictors_excluded_year,
