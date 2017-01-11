@@ -26,7 +26,7 @@ option_list <- list (
   make_option(c("-o", "--output-directory"), dest = "output_directory", type = "character", help = "directory with output files", metavar = "/path/to/output-dir"),
   make_option("--exclude-year",    dest = "exclude_year", type = "integer",   help = "year to exclude", metavar = "2015"),
   make_option("--stability",       action="store_true", default=FALSE, help="do stability analysis")
-)
+  )
 
 options <- parse_args(OptionParser(option_list=option_list))
 
@@ -120,6 +120,7 @@ predictors_obs <- predictors %>%
   inner_join(geography, by = "id")%>%
   dplyr::select(-group) %>%
   inner_join(transects, by = "id" ) %>%
+  # HERE AERIAL FILTER (IMPORTANT TO USE THE SAME THING ON POST-PROCESSING LIKE ON MODELING)
   dplyr::filter(group != "aerial")
 
 
