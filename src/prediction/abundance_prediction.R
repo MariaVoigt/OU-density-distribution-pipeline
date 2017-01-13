@@ -38,7 +38,9 @@ option_list <- list (
               help = "directory with predictor input files",
               metavar = "/path/to/pred_input-dir"),
 
-   make_option(c("-o", "--output-directory"), dest = "output_directory", type = "character", help = "directory with output files", metavar = "/path/to/output-dir"),
+   make_option(c("-o", "--output-directory"), dest = "output_directory",
+               type = "character", help = "directory with output files",
+               metavar = "/path/to/output-dir"),
 
   make_option("--year-to-predict",
               dest = "year_to_predict",
