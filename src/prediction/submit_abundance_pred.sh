@@ -24,15 +24,7 @@ printf "current git version: %s" $(git rev-parse HEAD)
 [[ -n $(git diff-index --name-only HEAD) ]] && echo "-dirty"
 printf "\n"
 
-if [[ ! -d $1 ]] ; then
-  echo "directory does not exist: $1"
-  exit 1
-fi
-
-INPUT_PATH=$1
 OUTPUT_PATH=/work/$USER/$JOB_NAME-$JOB_ID
-FUN_FILE=$2
-PRED_FILE=$3
 YEAR=$SGE_TASK_ID
 
 mkdir -p $OUTPUT_PATH
@@ -41,9 +33,7 @@ export MC_CORES=${NSLOTS:-1}
 
 Rscript \
     ~/orangutan_density_distribution/src/prediction/abundance_prediction.R \
-    $INPUT_PATH \
-    $OUTPUT_PATH \
-    $FUN_FILE \
-    $PRED_FILE \
-    $YEAR
+    -o $OUTPUT_PATH \
+    --year-to-predict $YEAR \
+    "$@"
 
