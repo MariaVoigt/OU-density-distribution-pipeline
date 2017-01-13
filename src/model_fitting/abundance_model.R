@@ -307,7 +307,6 @@ names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
 }
 
 
-save.image(file.path(outdir, "temp_image_before_for.RData"))
 results_res <- foreach(i = 1:nrow(all_model_terms),
                        .combine = rbind) %dopar%{
     model <- as.formula(
