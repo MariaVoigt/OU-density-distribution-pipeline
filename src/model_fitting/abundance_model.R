@@ -22,10 +22,19 @@ suppressPackageStartupMessages(library(optparse))
 #-----------------------------#
 
 option_list <- list (
-  make_option(c("-i", "--input-directory"),  dest = "input_directory", type = "character", help = "directory with input files",  metavar = "/path/to/input-dir"),
-  make_option(c("-o", "--output-directory"), dest = "output_directory", type = "character", help = "directory with output files", metavar = "/path/to/output-dir"),
-  make_option("--exclude-year",    dest = "exclude_year", type = "integer",   help = "year to exclude", metavar = "2015"),
-  make_option("--stability",       action="store_true", default=FALSE, help="do stability analysis")
+  make_option(c("-i", "--input-directory"),  dest = "input_directory",
+              type = "character", help = "directory with input files",
+              metavar = "/path/to/input-dir"),
+  make_option(c("-o", "--output-directory"), dest = "output_directory",
+              type = "character", help = "directory with output files",
+              metavar = "/path/to/output-dir"),
+  make_option("--exclude-year",    dest = "exclude_year", type = "integer",
+              help = "year to exclude", metavar = "2015"),
+  make_option("--include-aerial",
+              dest = "include_aerial", action="store_true",
+              default=FALSE,      help="include aerial transects"),
+  make_option("--stability",       action="store_true", default=FALSE,
+              help="do stability analysis")
   )
 
 options <- parse_args(OptionParser(option_list=option_list))
@@ -55,8 +64,13 @@ print(paste("outdir", outdir))
 do_stability <- options$stability
 print(paste("stability", do_stability))
 
+include_aerial <- options$include_aerial
+print(paste("include_aerial", include_aerial))
+
 exclude_year <- options$exclude_year
 print(paste("exclude year", exclude_year))
+
+
 
 #---------#
 # Globals #
