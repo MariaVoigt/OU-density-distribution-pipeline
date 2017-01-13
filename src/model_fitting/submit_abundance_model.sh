@@ -17,8 +17,12 @@
 
 #$ -cwd
 
-module load R/3.3.1-1
+module load R
+module load git
 
+printf "current git version: %s" $(git rev-parse HEAD)
+[[ -n $(git diff-index --name-only HEAD) ]] && echo "-dirty"
+printf "\n"
 
 if [[ -z $1 ]] ; then
   echo "qsub $0 /path/to/input"
