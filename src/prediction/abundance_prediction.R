@@ -9,15 +9,16 @@
 # Load Libraries #
 #----------------#
 
-library(parallel)
-library(foreach)
-library(doParallel)
-library(reshape2)
-library(dplyr)
-library(rgdal)
-library(sp)
-library(rgeos)
-library(raster)
+suppressMessages(library(parallel))
+suppressMessages(library(foreach))
+suppressMessages(library(doParallel))
+suppressMessages(library(reshape2))
+suppressMessages(library(dplyr))
+suppressMessages(library(rgdal))
+suppressMessages(library(sp))
+suppressMessages(library(rgeos))
+suppressMessages(library(raster))
+suppressPackageStartupMessages(library(optparse))
 
 cl <- makeForkCluster(outfile = "")
 registerDoParallel(cl)
