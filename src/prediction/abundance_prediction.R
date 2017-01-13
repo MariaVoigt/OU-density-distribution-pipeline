@@ -23,20 +23,76 @@ suppressPackageStartupMessages(library(optparse))
 cl <- makeForkCluster(outfile = "")
 registerDoParallel(cl)
 
+print(paste(Sys.time(), "0. start run"))
+
+#-----------------------------#
+# command line option parsing #
+#-----------------------------#
+
+option_list <- list (
+  make_option(c("-i", "--input-directory"),  dest = "input_directory",
+              type = "character", help = "directory with input files",
+              metavar = "/path/to/input-dir"),
+  make_option(c("-indir-pred", "--predictor-input-directory"),
+              dest = "pred_input_directory", type = "character",
+              help = "directory with predictor input files",
+              metavar = "/path/to/pred_input-dir"),
+
+   make_option(c("-o", "--output-directory"), dest = "output_directory", type = "character", help = "directory with output files", metavar = "/path/to/output-dir"),
+
+  make_option("--year-to-predict",
+              dest = "year_to_predict",
+              type = "integer",
+              help = "year of the survey years (1994:2015) to predict abundance to",
+              metavar = "2015")
+)
+
+options <- parse_args(OptionParser(option_list=option_list))
+
+# sanity checks
+
+if (is.null(options$input_directory)) {
+  stop("input directory not specified, check --help")
+}
+
+if (is.null(options$pred_input_directory)) {
+  stop("input directory not specified, check --help")
+}
+
+
+if (is.null(options$output_directory)) {
+  stop("output directory not specified, check --help")
+}
+
+year_to_predict_possibilities <- c(1999:2015)
+
+if (!(options$year_to_predict %in% year_to_predict_possibilities)) {
+  stop(paste("the year to predict to year must be between",
+             min(year_to_predict_possibilities),
+             "and", max(year_to_predict_possibilities)))
+}
+
+
+# input directory
+indir <- options$input_directory
+print(paste("indir", indir))
+
+# input directory
+indir_predictors <- options$pred_input_directory
+print(paste("indir_predictors", indir_predictors))
+
+# directory in which output is written
+outdir <- options$output_directory
+print(paste("outdir", outdir))
+
+
+year_to_predict <- as.numeric(options$year_to_predict )
+print(paste("year to predict " , year_to_predict))
+
 #------------------------#
 # command line arguments #
 #------------------------#
-print(paste(Sys.time(), "0. start run"))
-args <- commandArgs(trailingOnly = TRUE)
-print(paste("args", args))
-indir <- args[1]
-print(paste("indir ", indir))
-outdir <- args[2]
-print(paste("outdir ", outdir))
-indir_predictors <- args[3]
-print(paste("indir predictors", indir_predictors))
-year_to_predict <- as.numeric(args[4])
-print(paste("year " , year_to_predict))
+
 
 indir_fun <- "~/orangutan_density_distribution/src/functions/"
 crs_aea <- "+proj=aea +lat_1=7 +lat_2=-32 +lat_0=-15 +lon_0=125 +x_0=0
