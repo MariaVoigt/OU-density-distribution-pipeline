@@ -35,7 +35,9 @@ option_list <- list (
               default=FALSE,      help="include aerial transects"),
   make_option("--stability",       action="store_true", default=FALSE,
               help="do stability analysis")
-  )
+  make_option(c("-q", "--quiet"), dest = "quiet_script", action = "store_true",
+              default = FALSE, help = "only print results")
+)
 
 options <- parse_args(OptionParser(option_list=option_list))
 
@@ -72,6 +74,7 @@ print(paste("include_aerial", include_aerial))
 exclude_year <- options$exclude_year
 print(paste("exclude year", exclude_year))
 
+is_quiet <- options$quiet_script
 
 
 #---------#
