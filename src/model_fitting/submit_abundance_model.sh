@@ -24,9 +24,7 @@ printf "current git version: %s" $(git rev-parse HEAD)
 [[ -n $(git diff-index --name-only HEAD) ]] && echo "-dirty"
 printf "\n"
 
-OUTPUT_PATH=/work/$USER/$JOB_NAME-$JOB_ID
-
-mkdir -p $OUTPUT_PATH
+mkdir -p ${OUTPUT_PATH:=/work/$USER/$JOB_NAME-$JOB_ID}
 
 export MC_CORES=${NSLOTS:-1}
 
