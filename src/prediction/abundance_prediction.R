@@ -23,7 +23,6 @@ suppressPackageStartupMessages(library(optparse))
 cl <- makeForkCluster(outfile = "")
 registerDoParallel(cl)
 
-print(paste(Sys.time(), "0. start run"))
 
 #-----------------------------#
 # command line option parsing #
@@ -41,7 +40,8 @@ option_list <- list (
    make_option(c("-o", "--output-directory"), dest = "output_directory",
                type = "character", help = "directory with output files",
                metavar = "/path/to/output-dir"),
-
+  make_option("--exclude-year",    dest = "exclude_year", type = "integer",
+              help = "year to exclude", metavar = "2015"),
   make_option("--year-to-predict",
               dest = "year_to_predict",
               type = "integer",
@@ -64,6 +64,13 @@ if (is.null(options$pred_input_directory)) {
 
 if (is.null(options$output_directory)) {
   stop("output directory not specified, check --help")
+}
+
+exclude_year_possibilities <- c(1999:2015)
+
+if (!is.na(options$exclude_year) && !(options$exclude_year %in% exclude_year_possibilities)) {
+  stop(paste("exclude year must be between", min(exclude_year_possibilities),
+             "and", max(exclude_year_possibilities)))
 }
 
 year_to_predict_possibilities <- c(1999:2015)
