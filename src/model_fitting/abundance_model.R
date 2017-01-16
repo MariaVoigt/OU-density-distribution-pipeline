@@ -155,7 +155,10 @@ aerial_predictors_obs$nr_nests <- round(exp(4.7297 + 0.9796 *
 
   aerial_predictors_obs$ou_dens <- aerial_predictors_obs$nr_nests /
     (aerial_predictors_obs$nest_decay * NCS * PNB)
-  aerial_predictors_obs$offset_term <- log(1 * 1* aerial_predictors_obs$nest_decay * NCS * PNB )
+  aerial_predictors_obs$offset_term <- log( (1  * 1)/ aerial_conversion_factor *
+                                              aerial_predictors_obs$nest_decay *
+                                              NCS * PNB )
+
 
   other_predictors_obs <- filter(predictors_obs, group != "aerial")
   other_predictors_obs$ou_dens <- (other_predictors_obs$nr_nests/
