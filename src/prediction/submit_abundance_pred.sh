@@ -18,7 +18,7 @@
 
 
 module load R
-module load git
+module load git 2> /dev/null
 
 printf "current git version: %s" $(git rev-parse HEAD)
 [[ -n $(git diff-index --name-only HEAD) ]] && echo "-dirty"
