@@ -230,13 +230,24 @@ print(paste(Sys.time(),
             "nr of values over 10 ", year_to_predict,
             sum(pred_per_cell$abundance_pred > 10)))
 
+
+if (is.na(exclude_year)){
+  name_suffix <- ""} else {
+    name_suffix <- paste0(exclude_year, "_")
+  }
+
+
 saveRDS(pred_per_cell,
         file = file.path(outdir,
                          paste0("abundance_pred_per_cell_",
                                 year_to_predict,"_",
+                                name_suffix, "_",
                                 Sys.Date(), ".rds")))
 
-save.image(file.path(outdir, "image_before_map.RData"))
+
+save.image(file.path(outdir, paste0("abundance_pred_image_", name_suffix,
+                                    year_to_predict, "_", Sys.Date(), ".RData")))
+
 
 #-----------------------#
 # convert output to map #
@@ -261,25 +272,33 @@ pred_per_cell_sp <- SpatialPointsDataFrame(coords =
                                   proj4string = CRS(crs_aea),  match.ID = T)
 
 writeOGR(pred_per_cell_sp, dsn = outdir,
-         layer = paste0("prediction_shp_", year_to_predict), driver = "ESRI Shapefile")
+         layer = paste0("prediction_shp_",
+                        name_suffix,
+                        year_to_predict, "_",
+                        Sys.Date()), driver = "ESRI Shapefile")
 # pay attention that the tif gets a new name because later we delete all
 # with the same name as the shapefile
 system_string <- paste0("gdal_rasterize -ot 'Float32' -a abndnc_ ",
                         "-tr 1000.0 1000.0 -l prediction_shp_",
-                         year_to_predict," ", outdir, "/",
-                        "prediction_shp_", year_to_predict, ".shp",
+                        name_suffix, year_to_predict, "_", Sys.Date(),
                         " ", outdir, "/",
-                        "prediction_map_", year_to_predict, ".tif")
+                        "prediction_shp_", name_suffix,
+                        year_to_predict, "_",
+                        Sys.Date(), ".shp",
+                        " ", outdir, "/",
+                        "prediction_map_",name_suffix,
+                        year_to_predict, "_", Sys.Date(), ".tif")
 system(system_string)
 #delete the shapefile again because clogs up my system
 system_string_del <- paste0("rm -f ", outdir, "/prediction_shp_",
-                            year_to_predict, ".*")
+                            name_suffix, year_to_predict, "_",
+                            Sys.Date(), ".*")
 system(system_string_del)
 
 
 
-save.image(file.path(outdir, paste0("abundance_pred_image_", year_to_predict, "_",
-                                    Sys.Date(), ".RData")))
+save.image(file.path(outdir, paste0("abundance_pred_image_", name_suffix,
+                                    year_to_predict, "_", Sys.Date(), ".RData")))
 
 
 
