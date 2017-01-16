@@ -32,7 +32,7 @@ option_list <- list (
   make_option(c("-i", "--input-directory"),  dest = "input_directory",
               type = "character", help = "directory with input files",
               metavar = "/path/to/input-dir"),
-  make_option(c("-indir-pred", "--predictor-input-directory"),
+  make_option("--predictor-input-directory",
               dest = "pred_input_directory", type = "character",
               help = "directory with predictor input files",
               metavar = "/path/to/pred_input-dir"),
