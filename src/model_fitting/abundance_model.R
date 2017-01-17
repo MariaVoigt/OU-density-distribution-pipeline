@@ -35,9 +35,14 @@ option_list <- list (
               default=FALSE,      help="include aerial transects"),
   make_option("--stability",       action="store_true", default=FALSE,
               help="do stability analysis"),
-  make_option(c("-v", "--verbose"), dest = "verbose_script", action = "store_true",
-              default = TRUE, help = "print all intermediate results")
+  make_option(c("-q", "--quiet"), dest = "verbose_script",
+              action = "store_false",
+              default = TRUE,
+              help = "print all intermediate results")
 )
+# verbose option a bit counterintuitive
+# because I make action store_false, when I say -q that
+# means that verbose == F, which is quiet
 
 options <- parse_args(OptionParser(option_list=option_list))
 

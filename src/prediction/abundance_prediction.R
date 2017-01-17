@@ -47,9 +47,15 @@ option_list <- list (
               type = "integer",
               help = "year of the survey years (1994:2015) to predict abundance to",
               metavar = "2015"),
-  make_option(c("-v", "--verbose"), dest = "verbose_script", action = "store_true",
-              default = TRUE, help = "print all intermediate results")
+  make_option(c("-q", "--quiet"), dest = "verbose_script",
+              action = "store_false",
+              default = TRUE,
+              help = "print all intermediate results")
 )
+# verbose option a bit counterintuitive
+# because I make action store_false, when I say -q that
+# means that verbose == F, which is quiet
+
 
 options <- parse_args(OptionParser(option_list=option_list))
 
