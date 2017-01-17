@@ -20,7 +20,9 @@ suppressPackageStartupMessages(library(optparse))
 #-----------------------------#
 # command line option parsing #
 #-----------------------------#
+print(paste("Start model_fitting script", Sys.time()))
 
+      
 option_list <- list (
   make_option(c("-i", "--input-directory"),  dest = "input_directory",
               type = "character", help = "directory with input files",
@@ -435,4 +437,5 @@ write.csv(summary_mean_coefficients,
 save.image(file.path(outdir, paste0("abundance_model_fitting_",
                                     name_suffix,
                                     Sys.Date(), ".RData")))
-if(is_verbose){print(paste("11. finished script, finally, at", Sys.time()))}
+
+print(paste("Finished model_fitting script, at", Sys.time()))

@@ -21,13 +21,15 @@ suppressMessages(library(raster))
 suppressPackageStartupMessages(library(optparse))
 
 cl <- makeForkCluster(outfile = "")
-registerDoParallel(cl)
+suppressMessages(registerDoParallel(cl))
 
 
 #-----------------------------#
 # command line option parsing #
 #-----------------------------#
+print(paste("Start abundance_prediction script", Sys.time()))
 
+      
 option_list <- list (
   make_option(c("-i", "--input-directory"),  dest = "input_directory",
               type = "character", help = "directory with input files",
@@ -107,7 +109,7 @@ outdir <- options$output_directory
 if(is_verbose){print(paste("outdir", outdir))}
 
 year_to_predict <- as.numeric(options$year_to_predict )
-if(is_verbose){print(paste("year to predict " , year_to_predict))}
+print(paste("for year to predict" , year_to_predict))
 
 
 exclude_year <- as.numeric(options$exclude_year)
@@ -251,10 +253,6 @@ saveRDS(pred_per_cell,
                                 Sys.Date(), ".rds")))
 
 
-save.image(file.path(outdir, paste0("abundance_pred_image_", name_suffix,
-                                    year_to_predict, "_", Sys.Date(), ".RData")))
-
-
 #-----------------------#
 # convert output to map #
 #-----------------------#
@@ -306,6 +304,5 @@ system(system_string_del)
 save.image(file.path(outdir, paste0("abundance_pred_image_", name_suffix,
                                     year_to_predict, "_", Sys.Date(), ".RData")))
 
-
-
-if(is_verbose){print(paste(Sys.time(), "4. wrote results and done :-)"))}
+print(paste("Finish model_prediction script for year", year_to_predict,
+            Sys.time()))
