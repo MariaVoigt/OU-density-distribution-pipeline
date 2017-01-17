@@ -50,8 +50,8 @@ option_list <- list (
   make_option(c("-q", "--quiet"), dest = "verbose_script",
               action = "store_false",
               default = TRUE,
-              help = "print all intermediate results")
-)
+              help = "don't print all intermediate results"))
+
 # verbose option a bit counterintuitive
 # because I make action store_false, when I say -q that
 # means that verbose == F, which is quiet
@@ -90,30 +90,30 @@ if (!(options$year_to_predict %in% year_to_predict_possibilities)) {
 }
 
 
-# is verbose?
-is_verbose <- options$verbose_script
+# is quiet?
+is_quiet <- options$quiet_script
 # input directory
 
 
 indir <- options$input_directory
-if(is_verbose){print(paste("indir", indir))}
+if(is_quiet){print(paste("indir", indir))}
 
 # input directory
 indir_predictors <- options$pred_input_directory
-if(is_verbose){print(paste("indir_predictors", indir_predictors))}
+if(is_quiet){print(paste("indir_predictors", indir_predictors))}
 
 # directory in which output is written
 outdir <- options$output_directory
-if(is_verbose){print(paste("outdir", outdir))}
+if(is_quiet){print(paste("outdir", outdir))}
 
 year_to_predict <- as.numeric(options$year_to_predict )
-if(is_verbose){print(paste("year to predict " , year_to_predict))}
+if(is_quiet){print(paste("year to predict " , year_to_predict))}
 
 
 exclude_year <- as.numeric(options$exclude_year)
-if(is_verbose){print(paste("exclude year", exclude_year))}
+if(is_quiet){print(paste("exclude year", exclude_year))}
 
-if(is_verbose){print(paste(Sys.time(), "0. start run"))}
+if(is_quiet){print(paste(Sys.time(), "0. start run"))}
 #------------------------#
 # command line arguments #
 #------------------------#
@@ -132,7 +132,7 @@ source(file.path(indir_fun, "generic/path.to.current.R"))
 
 # Load coefficients and weights
 abundMod_results_path <- path.to.current(indir, "abundMod_results", "rds" )
-if(is_verbose){print(paste("this is abundMod_results_path:", abundMod_results_path))}
+if(is_quiet){print(paste("this is abundMod_results_path:", abundMod_results_path))}
 abundMod_results <- readRDS(abundMod_results_path)
 # exclude the first column, which contains models, exclude the coefficient of the
 # autocorellation term and the weighted aic of the model
@@ -166,19 +166,19 @@ predictor_names <- predictor_names_coeffs[!grepl("I(*)", predictor_names_coeffs)
 #----------------------------#
 # Load and prepare estimates #
 #----------------------------#
-if(is_verbose){print(paste("these are predictor names: ", predictor_names))}
+if(is_quiet){print(paste("these are predictor names: ", predictor_names))}
 predictors_path <- path.to.current(indir_predictors, paste0("predictors_abundance_",
                                                  year_to_predict),"rds")
-if(is_verbose){print(paste("this is predictors path", predictors_path))}
+if(is_quiet){print(paste("this is predictors path", predictors_path))}
 predictors <- readRDS(predictors_path) %>%
  dplyr::filter(predictor %in% predictor_names) %>%
     dcast(id + z_year ~ predictor,  value.var = "scaled_value")
 
 predictors$year <- predictors$z_year
 predictors$z_year <- NULL
-if(is_verbose){str(predictors)}
+if(is_quiet){str(predictors)}
 
-if(is_verbose){print(paste("this is nrow predictors", nrow(predictors)))}
+if(is_quiet){print(paste("this is nrow predictors", nrow(predictors)))}
 
 #--------------------------#
 # PREDICTION FOR each year #
@@ -202,7 +202,7 @@ names(predictor_estimates) <- c("intercept", predictor_names,
 # but takes a bit longer (52s, to 35s for 100 rows)
 ## PLUS PAY ATTENTION, IF PREDICTIONS NOT SAME NROW--> VALUES GET RECYCLED
 
-if(is_verbose){print(paste("1. start pred_per_cell", Sys.time()))}
+if(is_quiet){print(paste("1. start pred_per_cell", Sys.time()))}
 pred_per_cell <- foreach(i = 1:nrow(predictor_estimates), .combine = c)  %dopar% {
 # pred_per_cell <- foreach(i = 1:100, .combine = c)  %dopar% {
 t_predictor_estimates <- t( predictor_estimates[i, ])
@@ -213,7 +213,7 @@ pred_estimates_sum <- apply(pred_estimates_wcoeffs, 1, sum)
 return(exp(pred_estimates_calc))
 }
 
-if(is_verbose){print(paste(Sys.time(), "2. finished dopar loop"))}
+if(is_quiet){print(paste(Sys.time(), "2. finished dopar loop"))}
 
 # is this correct -> ????
 pred_per_cell <- as.data.frame(cbind(predictors$id, pred_per_cell))
@@ -258,7 +258,7 @@ save.image(file.path(outdir, paste0("abundance_pred_image_", name_suffix,
 #-----------------------#
 # convert output to map #
 #-----------------------#
-if(is_verbose){print(paste(Sys.time(), "3. Start making map"))}
+if(is_quiet){print(paste(Sys.time(), "3. Start making map"))}
 
 geography_grid_path <- path.to.current(indir_predictors,
                                        paste0("geography_", year_to_predict), "rds")
@@ -308,4 +308,4 @@ save.image(file.path(outdir, paste0("abundance_pred_image_", name_suffix,
 
 
 
-if(is_verbose){print(paste(Sys.time(), "4. wrote results and done :-)"))}
+if(is_quiet){print(paste(Sys.time(), "4. wrote results and done :-)"))}

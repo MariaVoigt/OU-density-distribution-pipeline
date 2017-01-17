@@ -38,7 +38,7 @@ option_list <- list (
   make_option(c("-q", "--quiet"), dest = "verbose_script",
               action = "store_false",
               default = TRUE,
-              help = "print all intermediate results")
+              help = "don't print all intermediate results")
 )
 # verbose option a bit counterintuitive
 # because I make action store_false, when I say -q that
@@ -60,26 +60,26 @@ if (!is.na(options$exclude_year) && !(options$exclude_year %in% exclude_year_pos
   stop(paste("exclude year must be between", min(exclude_year_possibilities), "and", max(exclude_year_possibilities)))
 }
 
-is_verbose <- options$verbose_script
+is_quiet <- options$quiet_script
 
-if(is_verbose){print(paste("Reminder: Include aerial is ", options$include_aerial, ". Please
+if(is_quiet){print(paste("Reminder: Include aerial is ", options$include_aerial, ". Please
             pay attention that the same is the case for post-processing."))}
 # input directory
 indir <- options$input_directory
-if(is_verbose){print(paste("indir", indir))}
+if(is_quiet){print(paste("indir", indir))}
 
 # directory in which output is written
 outdir <- options$output_directory
-if(is_verbose){print(paste("outdir", outdir))}
+if(is_quiet){print(paste("outdir", outdir))}
 
 do_stability <- options$stability
-if(is_verbose){print(paste("stability", do_stability))}
+if(is_quiet){print(paste("stability", do_stability))}
 
 include_aerial <- options$include_aerial
-if(is_verbose){print(paste("include_aerial", include_aerial))}
+if(is_quiet){print(paste("include_aerial", include_aerial))}
 
 exclude_year <- options$exclude_year
-if(is_verbose){print(paste("exclude year", exclude_year))}
+if(is_quiet){print(paste("exclude year", exclude_year))}
 
 
 
@@ -88,7 +88,7 @@ if(is_verbose){print(paste("exclude year", exclude_year))}
 #---------#
 
 indir_fun <- "../functions"
-if(is_verbose){print(paste("indir_fun", indir_fun))}
+if(is_quiet){print(paste("indir_fun", indir_fun))}
 
 cl <- makeForkCluster(outfile = "")
 registerDoParallel(cl)
@@ -112,16 +112,16 @@ options("scipen" = 100, "digits" = 4)
 #---------------#
 
 geography_path <- path.to.current(indir, "geography_observation", "rds")
-if(is_verbose){print(paste("geography-path", geography_path))}
+if(is_quiet){print(paste("geography-path", geography_path))}
 geography <- readRDS(geography_path)
 
 transects_path <- path.to.current(indir, "transects", "rds")
-if(is_verbose){print(paste("transect_path", transects_path))}
+if(is_quiet){print(paste("transect_path", transects_path))}
 transects <- readRDS(transects_path)
 
 
 predictors_path <- path.to.current(indir, "predictors_observation", "rds")
-if(is_verbose){print(paste("predictors-path", predictors_path))}
+if(is_quiet){print(paste("predictors-path", predictors_path))}
 predictors <- readRDS(predictors_path)
 
 
@@ -134,7 +134,7 @@ predictor_names <- c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
 
 geography <- dplyr::select(geography, -year)
 
-if(is_verbose){print("how many rows with na in scaled_value")
+if(is_quiet){print("how many rows with na in scaled_value")
 nrow(predictors[is.na(predictors$scaled_value),  ])}
 # deleting is.na values here
 predictors <- predictors[!is.na(predictors$scaled_value), ]
@@ -181,7 +181,7 @@ aerial_predictors_obs$nr_nests <- round(exp(4.7297 + 0.9796 *
 
   predictors_obs <- aerial_predictors_obs %>%
     dplyr::select(id:length_km, nr_nests, nest_decay, ou_dens, offset_term)
-  if(is_verbose){ print("This has to be true:")
+  if(is_quiet){ print("This has to be true:")
   unique(names(predictors_obs) == names(other_predictors_obs))}
   # HAS TO BE TRUE
   predictors_obs <- predictors_obs %>%
@@ -208,7 +208,7 @@ predictors_obs$y_center <- rowMeans(cbind(predictors_obs$y_start, predictors_obs
 predictors_obs$nr_ou_per_km2 <- predictors_obs$nr_nests /
   (predictors_obs$length_km * ESW * 2 * predictors_obs$nest_decay  * NCS * PNB )
 
-if(is_verbose){print("look at predictors_obs")
+if(is_quiet){print("look at predictors_obs")
 str(predictors_obs)
 summary(predictors_obs)}
 
@@ -218,7 +218,7 @@ if (!is.na(exclude_year)){
     predictors_excluded_year <- predictors_obs[predictors_obs$unscaled_year == exclude_year, ] }
     predictors_obs <- predictors_obs[predictors_obs$unscaled_year != exclude_year, ]
 
-if(is_verbose){ print(paste("3. start making all_model_terms", Sys.time()))}
+if(is_quiet){ print(paste("3. start making all_model_terms", Sys.time()))}
 
  # #build models needed for analysis with a function
 all_model_terms <- built.all.models(env.cov.names =
@@ -278,11 +278,11 @@ names(predictor_estimates) <- c("intercept", predictor_names,
 
 # calculate stability of the full model if desired
 if(do_stability){
-  if(is_verbose){print(paste("Start stability calculation", Sys.time()))}
+  if(is_quiet){print(paste("Start stability calculation", Sys.time()))}
 full_model <- paste(
   m_terms[all_model_terms[nrow(all_model_terms), ] == 1],
   collapse = "+")
-if(is_verbose){print(paste("This is the full-model", full_model))}
+if(is_quiet){print(paste("This is the full-model", full_model))}
 model <- as.formula(
   paste("nr_nests ~", full_model, "+ offset(offset_term)"))
 
@@ -300,7 +300,7 @@ write.csv(dfbeta_frame, file.path(outdir,
 }
 
 # #run models
-if(is_verbose){print(paste("8. Start running models", Sys.time()))}
+if(is_quiet){print(paste("8. Start running models", Sys.time()))}
 
 
 if (is.na(exclude_year)){
@@ -435,4 +435,4 @@ write.csv(summary_mean_coefficients,
 save.image(file.path(outdir, paste0("abundance_model_fitting_",
                                     name_suffix,
                                     Sys.Date(), ".RData")))
-if(is_verbose){print(paste("11. finished script, finally, at", Sys.time()))}
+if(is_quiet){print(paste("11. finished script, finally, at", Sys.time()))}
