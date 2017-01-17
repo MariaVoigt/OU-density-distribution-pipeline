@@ -89,7 +89,7 @@ if(is_verbose){print(paste("exclude year", exclude_year))}
 # Globals #
 #---------#
 
-indir_fun <- "../functions"
+indir_fun <- "~/orangutan_density_distribution/src/functions"
 if(is_verbose){print(paste("indir_fun", indir_fun))}
 
 cl <- makeForkCluster(outfile = "")
