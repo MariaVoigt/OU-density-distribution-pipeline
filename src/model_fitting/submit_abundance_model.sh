@@ -29,6 +29,6 @@ mkdir -p ${OUTPUT_PATH:=/work/$USER/$JOB_NAME-$JOB_ID}
 export MC_CORES=${NSLOTS:-1}
 
 Rscript \
-    abundance_model.R \
+    ~/orangutan_density_distribution/src/model_fitting/abundance_model.R \
     -o $OUTPUT_PATH \
     "$@"
