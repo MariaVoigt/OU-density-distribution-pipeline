@@ -213,7 +213,7 @@ summary(predictors_obs)}
 
 # now exclude the year that needs to be excluded
 if (!is.na(exclude_year)){
-    predictors_excluded_year <- predictors_obs[predictors_obs$unscaled_year == exclude_year, ] 
+    predictors_excluded_year <- predictors_obs[predictors_obs$unscaled_year == exclude_year, ]
     predictors_obs <- predictors_obs[predictors_obs$unscaled_year != exclude_year, ]}
 
 if(is_verbose){ print(paste("3. start making all_model_terms", Sys.time()))}
@@ -255,7 +255,6 @@ m_terms <- c("1",
              "perc_muslim",
              "I(rain_dry^2)")
 
-save.image(file.path(outdir, "test.RData"))
 
 # save model_terms here
 model_terms <- names(glm.nb(as.formula(paste("nr_nests~", paste(m_terms,
@@ -318,6 +317,7 @@ names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
                        "theta", "SE.theta", "AIC", "R2", "R2_cross")
 }
 
+save.image(file.path(outdir, "test.RData"))
 
 results_res <- foreach(i = 1:nrow(all_model_terms),
                        .combine = rbind) %dopar%{
