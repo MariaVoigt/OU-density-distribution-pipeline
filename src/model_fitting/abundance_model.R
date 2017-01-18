@@ -211,11 +211,10 @@ if(is_verbose){print("look at predictors_obs")
 str(predictors_obs)
 summary(predictors_obs)}
 
-
 # now exclude the year that needs to be excluded
 if (!is.na(exclude_year)){
-    predictors_excluded_year <- predictors_obs[predictors_obs$unscaled_year == exclude_year, ] }
-    predictors_obs <- predictors_obs[predictors_obs$unscaled_year != exclude_year, ]
+    predictors_excluded_year <- predictors_obs[predictors_obs$unscaled_year == exclude_year, ] 
+    predictors_obs <- predictors_obs[predictors_obs$unscaled_year != exclude_year, ]}
 
 if(is_verbose){ print(paste("3. start making all_model_terms", Sys.time()))}
 
