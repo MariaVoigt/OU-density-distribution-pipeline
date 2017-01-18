@@ -31,7 +31,7 @@ option_list <- list (
               type = "character", help = "directory with output files",
               metavar = "/path/to/output-dir"),
   make_option("--exclude-year",    dest = "exclude_year", type = "integer",
-              help = "year to exclude", metavar = "2015"),
+             default = NA, help = "year to exclude", metavar = "2015"),
   make_option("--include-aerial",
               dest = "include_aerial", action="store_true",
               default=FALSE,      help="include aerial transects"),
