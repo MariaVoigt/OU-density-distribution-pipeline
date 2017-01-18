@@ -22,7 +22,7 @@ suppressPackageStartupMessages(library(optparse))
 #-----------------------------#
 print(paste("Start model_fitting script", Sys.time()))
 
-      
+
 option_list <- list (
   make_option(c("-i", "--input-directory"),  dest = "input_directory",
               type = "character", help = "directory with input files",
@@ -261,7 +261,8 @@ model_terms <- names(glm.nb(as.formula(paste("nr_nests~", paste(m_terms,
                                                                 collapse = "+"),
                                              "+ offset(offset_term)",
                                              sep = "")),
-                              data = predictors_obs)$coefficients)
+                              data = predictors_obs,
+                            control = glm.control(maxit = 500))$coefficients)
 # prediction estimates
 intercept <- rep(1, nrow(predictors_obs))
 predictor_estimates <- cbind( intercept,
@@ -284,7 +285,8 @@ if(is_verbose){print(paste("This is the full-model", full_model))}
 model <- as.formula(
   paste("nr_nests ~", full_model, "+ offset(offset_term)"))
 
-res_full <- glm.nb(model, data = predictors_obs)
+res_full <- glm.nb(model, data = predictors_obs,
+                   control = glm.control(maxit = 500))
 
 # HERE I CAN NOW USE THE OTHER FUNCTION
 dfbeta_frame <- data.frame(slope=res_full$coefficients, res_full$coefficients+
@@ -325,7 +327,8 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
             paste("nr_nests ~",
 	    paste(m_terms[all_model_terms[i, ] == 1], collapse = "+"),
             "+ offset(offset_term)"))
-            res <- glm.nb(model, data = predictors_obs)
+            res <- glm.nb(model, data = predictors_obs,
+                          control = glm.control(maxit = 500))
 
 
 # model
