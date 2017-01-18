@@ -189,7 +189,7 @@ aerial_predictors_obs$nr_nests <- round(exp(4.7297 + 0.9796 *
   predictors_obs <- predictors_obs %>%
     bind_rows(other_predictors_obs) %>%
     arrange(id) %>%
-    as.predictors_obs.frame(.)
+    as.data.frame(.)
 
 
 if (include_aerial == FALSE) {
@@ -206,9 +206,6 @@ predictors_obs$year <- as.numeric(scaled_year)
 predictors_obs$x_center <-  rowMeans(cbind(predictors_obs$x_start, predictors_obs$x_end), na.rm = T)
 predictors_obs$y_center <- rowMeans(cbind(predictors_obs$y_start, predictors_obs$y_end), na.rm = T)
 
-# calculate ou_dens
-predictors_obs$nr_ou_per_km2 <- predictors_obs$nr_nests /
-  (predictors_obs$length_km * ESW * 2 * predictors_obs$nest_decay  * NCS * PNB )
 
 if(is_verbose){print("look at predictors_obs")
 str(predictors_obs)
@@ -259,6 +256,7 @@ m_terms <- c("1",
              "perc_muslim",
              "I(rain_dry^2)")
 
+save.image(file.path(outdir, "test.RData"))
 
 # save model_terms here
 model_terms <- names(glm.nb(as.formula(paste("nr_nests~", paste(m_terms,
