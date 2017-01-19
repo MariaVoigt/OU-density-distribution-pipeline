@@ -321,7 +321,6 @@ names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
                        "R2_cross")
 }
 
-save.image(file.path(outdir, "test.RData"))
 
 results_res <- foreach(i = 1:nrow(all_model_terms),
                        .combine = rbind) %dopar%{
