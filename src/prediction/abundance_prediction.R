@@ -248,7 +248,7 @@ saveRDS(pred_per_cell,
         file = file.path(outdir,
                          paste0("abundance_pred_per_cell_",
                                 year_to_predict,"_",
-                                name_suffix, "_",
+                                name_suffix,
                                 Sys.Date(), ".rds")))
 
 
