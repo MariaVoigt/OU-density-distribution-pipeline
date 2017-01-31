@@ -130,7 +130,7 @@ predictors <- readRDS(predictors_path)
 # these are the predictors that will be used in the model
 predictor_names <- c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
                      "peatswamp", "lowland_forest",
-                     "lower_montane_forest", "deforestation",
+                     "lower_montane_forest", "deforestation_hansen",
                      "human_pop_dens", "ou_killing_prediction",
                      "perc_muslim" )
 
@@ -228,7 +228,7 @@ all_model_terms <- built.all.models(env.cov.names =
                                          "peatswamp",
                                          "lowland_forest",
                                          "lower_montane_forest",
-                                         "deforestation",
+                                         "deforestation_hansen",
                                          "human_pop_dens",
                                          "ou_killing_prediction",
                                          "perc_muslim"),
@@ -249,7 +249,7 @@ m_terms <- c("1",
              "peatswamp",
              "lowland_forest",
              "lower_montane_forest",
-             "deforestation",
+             "deforestation_hansen",
              "human_pop_dens",
              "ou_killing_prediction",
              "perc_muslim",
