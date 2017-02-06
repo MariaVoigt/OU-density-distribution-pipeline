@@ -29,7 +29,7 @@ suppressMessages(registerDoParallel(cl))
 #-----------------------------#
 print(paste("Start abundance_prediction script", Sys.time()))
 
-      
+
 option_list <- list (
   make_option(c("-i", "--input-directory"),  dest = "input_directory",
               type = "character", help = "directory with input files",
@@ -119,11 +119,15 @@ if(is_verbose){print(paste(Sys.time(), "0. start run"))}
 # command line arguments #
 #------------------------#
 
-
 indir_fun <- "~/orangutan_density_distribution/src/functions/"
+
 crs_aea <- "+proj=aea +lat_1=7 +lat_2=-32 +lat_0=-15 +lon_0=125 +x_0=0
   +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs" # final projection
 
+if (is.na(exclude_year)){
+  name_suffix <- ""} else {
+    name_suffix <- paste0(exclude_year, "_")
+  }
 
 #-------------------------------#
 # Load and prepare coefficients #
@@ -167,19 +171,93 @@ predictor_names <- predictor_names_coeffs[!grepl("I(*)", predictor_names_coeffs)
 #----------------------------#
 # Load and prepare estimates #
 #----------------------------#
-if(is_verbose){print(paste("these are predictor names: ", predictor_names))}
+geography_path <- path.to.current(indir, paste0("geography_",
+                                                            year_to_predict),"rds")
+if(is_verbose){print(paste("this is geography path", geography_path))}
+geography <- readRDS(geography_path)
+
 predictors_path <- path.to.current(indir_predictors, paste0("predictors_abundance_",
                                                  year_to_predict),"rds")
 if(is_verbose){print(paste("this is predictors path", predictors_path))}
-predictors <- readRDS(predictors_path) %>%
- dplyr::filter(predictor %in% predictor_names) %>%
-    dcast(id + z_year ~ predictor,  value.var = "scaled_value")
+predictors <- readRDS(predictors_path)
 
-predictors$year <- predictors$z_year
-predictors$z_year <- NULL
-if(is_verbose){str(predictors)}
+predictors_obs_path <- path.to.current(indir_predictors,
+                                       paste0("predictors_obs_", name_suffix),
+                                              "rds")
+if(is_verbose){print(paste("this is predictors-obs path", predictors_obs_path))}
 
-if(is_verbose){print(paste("this is nrow predictors", nrow(predictors)))}
+predictors_obs <- readRDS(predictors_obs_path)
+
+# Scale the grid-predictors using mean and sd of predictors_obs
+
+# predictors for scaling
+predictor_names_for_scaling <- c( "dem", "slope", "temp_mean", "rain_dry", "rain_var",
+                                  "ou_killings", "ou_killing_prediction", "human_pop_dens",
+                                  "perc_muslim", "peatswamp", "lowland_forest", "lower_montane_forest" ,
+                                  "road_dens", "distance_PA", "fire_dens", "deforestation_hansen",
+                                  "deforestation_gaveau", "plantation_distance", "pulp_distance", "palm_distance",
+                                  "dom_T_OC", "dom_T_PH")
+
+# predictors used in model
+predictor_names <- c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
+                     "peatswamp", "lowland_forest",
+                     "lower_montane_forest", "deforestation_hansen",
+                     "human_pop_dens", "ou_killing_prediction",
+                     "perc_muslim" )
+
+predictors <- rename(predictors, unscaled_value = value)
+
+# calculate x and y center
+geography$unscaled_x_center <-  rowMeans(cbind(geography$x_start, geography$x_end), na.rm = T)
+geography$unscaled_y_center <- rowMeans(cbind(geography$y_start, geography$y_end), na.rm = T)
+
+
+
+for (predictor_name in predictor_names_for_scaling){
+  mean_predictor_obs <- mean(predictors_obs[ , paste0("unscaled_", predictor_name)], na.rm = T)
+  sd_predictor_obs <- mean(predictors_obs[ , paste0("unscaled_", predictor_name)], na.rm = T)
+  predictors[predictors$predictor == predictor_name,
+             "value" ] <- (predictors[predictors$predictor == predictor_name,
+                                     "unscaled_value" ] - mean_predictor_obs) /
+                                      sd_predictor_obs
+
+}
+
+
+# cast it to wide
+
+predictors_grid <- dplyr::filter(predictors, predictor %in% predictor_names_for_scaling)  %>%
+  dcast(id + year ~ predictor,  value.var = "value") %>%
+  dplyr::select(-year)
+
+
+predictors_grid_unscaled <- dplyr::filter(predictors, predictor %in% predictor_names_for_scaling ) %>%
+  dcast(id + year ~ predictor,  value.var = "unscaled_value") %>%
+  rename(unscaled_year = year)
+names(predictors_grid_unscaled)[-c(1,2)] <- paste0("unscaled_", names(predictors_grid_unscaled)[-c(1, 2)])
+
+# join with geography to have x and y-center
+
+predictors_grid <- predictors_grid %>%
+  left_join(predictors_grid_unscaled, by = "id") %>%
+  left_join(geography, by = "id")
+
+
+# year and x- and y-center
+additional_predictors <- c("year", "x_center", "y_center")
+
+for (predictor_name in additional_predictors){
+  mean_predictor_obs <- mean(predictors_obs[ , paste0("unscaled_", predictor_name)], na.rm = T)
+  sd_predictor_obs <- mean(predictors_obs[ , paste0("unscaled_", predictor_name)], na.rm = T)
+  predictors_grid[ ,
+             predictor_name] <- (predictors_grid[ ,
+                                      paste0("unscaled_", predictor_name) ] - mean_predictor_obs) /
+    sd_predictor_obs
+}
+
+
+
+# RENAME PREDICTORS INTO PREDICTORS_GRID
 
 #--------------------------#
 # PREDICTION FOR each year #
@@ -188,10 +266,10 @@ if(is_verbose){print(paste("this is nrow predictors", nrow(predictors)))}
 # in the coefficients
 # HERE PAY ATTENTION FOR INTERACTIONS
 # AND IF THERE IS MORE THAN ONE QUADRATIC TERM
-intercept <- rep(1, nrow(predictors))
+intercept <- rep(1, nrow(predictors_grid))
 predictor_estimates <- cbind( intercept,
-                    predictors[ , predictor_names],
-                    predictors[ ,quadratic_terms_names] * predictors[ ,quadratic_terms_names])
+                              predictors_grid[ , predictor_names],
+                              predictors_grid[ ,quadratic_terms_names] * predictors_grid[ ,quadratic_terms_names])
 
 names(predictor_estimates) <- c("intercept", predictor_names,
                                 paste0("I(", quadratic_terms_names, "^2)"))
@@ -205,19 +283,19 @@ names(predictor_estimates) <- c("intercept", predictor_names,
 
 if(is_verbose){print(paste("1. start pred_per_cell", Sys.time()))}
 pred_per_cell <- foreach(i = 1:nrow(predictor_estimates), .combine = c)  %dopar% {
-# pred_per_cell <- foreach(i = 1:100, .combine = c)  %dopar% {
-t_predictor_estimates <- t( predictor_estimates[i, ])
-pred_estimates_wcoeffs  <- data.frame(mapply(`*`, coeffs, t_predictor_estimates, SIMPLIFY = F))
-pred_estimates_sum <- apply(pred_estimates_wcoeffs, 1, sum)
-    pred_estimates_weighted <- pred_estimates_sum * abundMod_results$w_aic
-    pred_estimates_calc <- sum(pred_estimates_weighted)
-return(exp(pred_estimates_calc))
+  # pred_per_cell <- foreach(i = 1:100, .combine = c)  %dopar% {
+  t_predictor_estimates <- t( predictor_estimates[i, ])
+  pred_estimates_wcoeffs  <- data.frame(mapply(`*`, coeffs, t_predictor_estimates, SIMPLIFY = F))
+  pred_estimates_sum <- apply(pred_estimates_wcoeffs, 1, sum)
+  pred_estimates_weighted <- pred_estimates_sum * abundMod_results$w_aic
+  pred_estimates_calc <- sum(pred_estimates_weighted)
+  return(exp(pred_estimates_calc))
 }
 
 if(is_verbose){print(paste(Sys.time(), "2. finished dopar loop"))}
 
 # is this correct -> ????
-pred_per_cell <- as.data.frame(cbind(predictors$id, pred_per_cell))
+pred_per_cell <- as.data.frame(cbind(predictors_grid$id, pred_per_cell))
 names(pred_per_cell) <- c("id", "abundance_pred")
 
 # exclude NAN
@@ -264,15 +342,15 @@ geography_grid <- readRDS(geography_grid_path)
 geography_grid_for_join <- dplyr::select(geography_grid, id, x_start, y_start)
 
 pred_per_cell_sp <- left_join(geography_grid_for_join,
-                                  pred_per_cell, by = "id") %>%
-                        as.data.frame()
+                              pred_per_cell, by = "id") %>%
+  as.data.frame()
 
 
 pred_per_cell_sp <- SpatialPointsDataFrame(coords =
-                               cbind(pred_per_cell_sp$x_start,
-                                     pred_per_cell_sp$y_start),
-                                  data = pred_per_cell_sp,
-                                  proj4string = CRS(crs_aea),  match.ID = T)
+                                             cbind(pred_per_cell_sp$x_start,
+                                                   pred_per_cell_sp$y_start),
+                                           data = pred_per_cell_sp,
+                                           proj4string = CRS(crs_aea),  match.ID = T)
 
 writeOGR(pred_per_cell_sp, dsn = outdir,
          layer = paste0("prediction_shp_",
@@ -305,3 +383,5 @@ save.image(file.path(outdir, paste0("abundance_pred_image_", name_suffix,
 
 print(paste("Finish model_prediction script for year", year_to_predict,
             Sys.time()))
+
+
