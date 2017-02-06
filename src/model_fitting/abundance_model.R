@@ -102,6 +102,7 @@ source(file.path(indir_fun, "roger_functions/get_conf_set.r"))
 
 #define offset ground
 ESW <- 0.01595  #effective strip width in km
+ESW_aerial <- 0.075 # effective strip width for aerial transects
 NCS <- 1.12   #nest construction rate from Spehar et al. 2010
 PNB <- 0.88  #  proportion of nest builders from Spehar et al. 2010
 
@@ -148,53 +149,6 @@ predictors_obs <- predictors %>%
   dplyr::select(-group) %>%
   inner_join(transects, by = "id" )
 
-# work on aerial transects
-# here we need to calculate first the aerial index (nests / km) and then transform it to nest-density
-# then we include the offset without length_km * 2 * ESW
-# for the transect this goes into the term
-# we are also adding a conversion factor to have the response more similar,
-# that we are going to add into the response and the offset
-aerial_conversion_factor <- 100
-aerial_predictors_obs <- dplyr::filter(predictors_obs, group == "aerial")
-# Ai is aerial index (number of nests detected per kilometer of flight)
-aerial_predictors_obs$AI <- aerial_predictors_obs$nr_nests /
-  aerial_predictors_obs$length_km
-# calculate orangutan nest density from aerial index with formula 6 given in Ancrenaz et al., 2004
-aerial_predictors_obs$nr_nests <- round(exp(4.7297 + 0.9796 *
-                                              log(aerial_predictors_obs$AI))
-                                        / aerial_conversion_factor)
-
-  aerial_predictors_obs$ou_dens <- aerial_predictors_obs$nr_nests /
-    (aerial_predictors_obs$nest_decay * NCS * PNB)
-  aerial_predictors_obs$offset_term <- log( (1  * 1)/ aerial_conversion_factor *
-                                              aerial_predictors_obs$nest_decay *
-                                              NCS * PNB )
-
-
-  other_predictors_obs <- filter(predictors_obs, group != "aerial")
-  other_predictors_obs$ou_dens <- (other_predictors_obs$nr_nests/
-                                     (other_predictors_obs$length_km * ESW * 2))  *
-    (1/(other_predictors_obs$nest_decay * NCS * PNB))
-
-  other_predictors_obs$offset_term <- log(other_predictors_obs$length_km * ESW *
-                                            2 * other_predictors_obs$nest_decay *
-                                            NCS * PNB)
-  names_predictors_obs <- names(other_predictors_obs)
-
-  predictors_obs <- aerial_predictors_obs %>%
-    dplyr::select(id:length_km, nr_nests, nest_decay, ou_dens, offset_term)
-  if(is_verbose){ print("This has to be true:")
-  unique(names(predictors_obs) == names(other_predictors_obs))}
-  # HAS TO BE TRUE
-  predictors_obs <- predictors_obs %>%
-    bind_rows(other_predictors_obs) %>%
-    arrange(id) %>%
-    as.data.frame(.)
-
-
-if (include_aerial == FALSE) {
-predictors_obs <- filter(predictors_obs, group != "aerial")
-  }
 
 
 # SCALE YEAR
