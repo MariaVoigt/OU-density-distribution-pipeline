@@ -256,6 +256,7 @@ for (predictor_name in additional_predictors){
 }
 
 
+
 # RENAME PREDICTORS INTO PREDICTORS_GRID
 
 #--------------------------#
@@ -265,10 +266,10 @@ for (predictor_name in additional_predictors){
 # in the coefficients
 # HERE PAY ATTENTION FOR INTERACTIONS
 # AND IF THERE IS MORE THAN ONE QUADRATIC TERM
-intercept <- rep(1, nrow(predictors))
+intercept <- rep(1, nrow(predictors_grid))
 predictor_estimates <- cbind( intercept,
-                              predictors[ , predictor_names],
-                              predictors[ ,quadratic_terms_names] * predictors[ ,quadratic_terms_names])
+                              predictors_grid[ , predictor_names],
+                              predictors_grid[ ,quadratic_terms_names] * predictors_grid[ ,quadratic_terms_names])
 
 names(predictor_estimates) <- c("intercept", predictor_names,
                                 paste0("I(", quadratic_terms_names, "^2)"))
@@ -294,7 +295,7 @@ pred_per_cell <- foreach(i = 1:nrow(predictor_estimates), .combine = c)  %dopar%
 if(is_verbose){print(paste(Sys.time(), "2. finished dopar loop"))}
 
 # is this correct -> ????
-pred_per_cell <- as.data.frame(cbind(predictors$id, pred_per_cell))
+pred_per_cell <- as.data.frame(cbind(predictors_grid$id, pred_per_cell))
 names(pred_per_cell) <- c("id", "abundance_pred")
 
 # exclude NAN
@@ -382,4 +383,5 @@ save.image(file.path(outdir, paste0("abundance_pred_image_", name_suffix,
 
 print(paste("Finish model_prediction script for year", year_to_predict,
             Sys.time()))
+
 
