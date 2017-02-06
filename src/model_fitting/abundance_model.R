@@ -110,6 +110,11 @@ PNB <- 0.88  #  proportion of nest builders from Spehar et al. 2010
 options("scipen" = 100, "digits" = 4)
 
 
+if (is.na(exclude_year)){
+  name_suffix <- ""} else {
+    name_suffix <- paste0(exclude_year, "_")
+  }
+
 #---------------#
 #  Import data  #
 #---------------#
@@ -159,7 +164,7 @@ predictor_names_for_scaling <- c( "dem", "slope", "temp_mean", "rain_dry", "rain
                                   "deforestation_gaveau", "plantation_distance", "pulp_distance", "palm_distance",
                                   "dom_T_OC", "dom_T_PH")
 # predictors used in model
-predictor_names <-c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
+predictor_names <- c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
                     "peatswamp", "lowland_forest",
                     "lower_montane_forest", "deforestation_hansen",
                     "human_pop_dens", "ou_killing_prediction",
@@ -202,7 +207,7 @@ geography <- dplyr::select(geography, -c(year))
 
 # Rename here1
 predictors_obs <- predictors %>%
-  dplyr::filter(predictor %in% predictor_names)%>%
+  dplyr::filter(predictor %in% predictor_names_for_scaling)%>%
   dcast(id + year ~ predictor,  value.var = "value") %>%
   inner_join(geography, by = "id")%>%
   dplyr::select(-group) %>%
@@ -211,11 +216,12 @@ predictors_obs <- predictors %>%
 
 
 predictors_obs_unscaled <- predictors %>%
-  dplyr::filter(predictor %in% predictor_names)%>%
+  dplyr::filter(predictor %in% predictor_names_for_scaling)%>%
   dcast(id + unscaled_year ~ predictor,  value.var = "unscaled_value")
 
 
-names(predictors_obs_unscaled)[-c(1,2)] <- paste0("unscaled_", names(predictors_obs_unscaled)[-c(1,2)])
+names(predictors_obs_unscaled)[-c(1,2)] <- paste0("unscaled_",
+                                                  names(predictors_obs_unscaled)[-c(1,2)])
 
 predictors_obs <- left_join(predictors_obs, predictors_obs_unscaled, by = "id")
 
@@ -258,7 +264,7 @@ predictors_obs <- aerial_predictors_obs %>%
   bind_rows(other_predictors_obs) %>%
   arrange(id) %>%
   dplyr::select(id, group, x_start:LU, length_km:nest_decay,
-                year, deforestation_hansen:temp_mean, x_center, y_center,
+                year, deforestation_gaveau:temp_mean, x_center, y_center,
                 unscaled_year:unscaled_temp_mean, unscaled_x_center,
                 unscaled_y_center, ou_dens, offset_term) %>%
   as.data.frame(.)
@@ -267,6 +273,13 @@ predictors_obs <- aerial_predictors_obs %>%
 if(is_verbose){print("look at predictors_obs")
   str(predictors_obs)
   summary(predictors_obs)}
+
+# save this
+# save the relevant output for the prediction and the validation
+saveRDS(predictors_obs, file = file.path(outdir, paste0("predictors_obs_",
+                                                          name_suffix,
+                                                          Sys.Date(), ".rds")))
+
 
 # now exclude the year that needs to be excluded
 if (!is.na(exclude_year)){
@@ -462,11 +475,6 @@ c_set$d.aic <- NULL
 c_set$w.aic <- NULL
 results_out <- right_join(results_res, c_set,  by="AIC")
 results_out <- results_out[order(results_out$AIC), ]
-
-if (is.na(exclude_year)){
-  name_suffix <- ""} else {
-    name_suffix <- paste0(exclude_year, "_")
-  }
 
 # save the relevant output for the prediction and the validation
 saveRDS(abundMod_results, file = file.path(outdir, paste0("abundMod_results_",
