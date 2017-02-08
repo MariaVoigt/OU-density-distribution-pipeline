@@ -15,7 +15,6 @@
 
 #$ -m ea
 
-#$ -cwd
 
 module load R
 module load git 2> /dev/null
@@ -26,9 +25,12 @@ printf "\n"
 
 mkdir -p ${OUTPUT_PATH:=/work/$USER/$JOB_NAME-$JOB_ID}
 
+ESW_INDEX=$SGE_TASK_ID
+
 export MC_CORES=${NSLOTS:-1}
 
 Rscript \
     ~/orangutan_density_distribution/src/model_fitting/abundance_model.R \
     -o $OUTPUT_PATH \
+    --ESW-aerial-index $ESW_INDEX
     "$@"
