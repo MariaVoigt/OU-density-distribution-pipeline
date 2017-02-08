@@ -171,7 +171,7 @@ predictor_names <- predictor_names_coeffs[!grepl("I(*)", predictor_names_coeffs)
 #----------------------------#
 # Load and prepare estimates #
 #----------------------------#
-geography_path <- path.to.current(indir, paste0("geography_",
+geography_path <- path.to.current(indir_predictors, paste0("geography_",
                                                             year_to_predict),"rds")
 if(is_verbose){print(paste("this is geography path", geography_path))}
 geography <- readRDS(geography_path)
