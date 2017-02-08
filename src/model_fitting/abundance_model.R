@@ -30,6 +30,10 @@ option_list <- list (
   make_option(c("-o", "--output-directory"), dest = "output_directory",
               type = "character", help = "directory with output files",
               metavar = "/path/to/output-dir"),
+ make_option("--ESW-aerial-index",
+              dest = "ESW_aerial_index",
+	      type = "double",
+	      help = "index aerial effective strip width"),
   make_option("--exclude-year",    dest = "exclude_year", type = "integer",
              default = NA, help = "year to exclude", metavar = "2015"),
   make_option("--include-aerial",
@@ -74,6 +78,9 @@ if(is_verbose){print(paste("indir", indir))}
 outdir <- options$output_directory
 if(is_verbose){print(paste("outdir", outdir))}
 
+ESW_aerial_index <- options$ESW_aerial_index
+if(is_verbose){print(paste("Aerial ESW index", ESW_aerial_index))}
+
 do_stability <- options$stability
 if(is_verbose){print(paste("stability", do_stability))}
 
@@ -102,7 +109,10 @@ source(file.path(indir_fun, "roger_functions/get_conf_set.r"))
 
 #define offset ground
 ESW <- 0.01595  #effective strip width in km
-ESW_aerial <- 0.075 # effective strip width for aerial transects
+
+ESW_aerial_options <- seq(from = 0.01, to = 0.15, by = 0.01)
+ESW_aerial <- ESW_aerial_options[ESW_aerial_index]
+print(paste("this is ESW aerial:", ESW_aerial))
 NCS <- 1.12   #nest construction rate from Spehar et al. 2010
 PNB <- 0.88  #  proportion of nest builders from Spehar et al. 2010
 
