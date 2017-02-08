@@ -242,8 +242,21 @@ predictors_obs$y_center <- as.numeric(as.vector(scale(predictors_obs[ ,
                                                                       "unscaled_y_center"])))
 
 
-# work on aerial transects
+#  ou density and offset term for ground and absence transects
+other_predictors_obs <- filter(predictors_obs, group != "aerial")
+# density
+other_predictors_obs$ou_dens <- (other_predictors_obs$nr_nests/
+                                   (other_predictors_obs$length_km * ESW * 2))  *
+  (1/(other_predictors_obs$nest_decay * NCS * PNB))
+# offset
+other_predictors_obs$offset_term <- log(other_predictors_obs$length_km * ESW *
+                                          2 * other_predictors_obs$nest_decay *
+                                          NCS * PNB)
 
+
+#  ou density and offset term for aerial transects
+
+if (include_aerial == T){
 aerial_predictors_obs <- dplyr::filter(predictors_obs, group == "aerial")
 # density
 aerial_predictors_obs$ou_dens <- (aerial_predictors_obs$nr_nests/
@@ -254,22 +267,14 @@ aerial_predictors_obs$offset_term <- log(aerial_predictors_obs$length_km * ESW_a
                                            2 * aerial_predictors_obs$nest_decay *
                                            NCS * PNB)
 
-# work on ground transects
-other_predictors_obs <- filter(predictors_obs, group != "aerial")
-# density
-other_predictors_obs$ou_dens <- (other_predictors_obs$nr_nests/
-                                   (other_predictors_obs$length_km * ESW * 2))  *
-  (1/(other_predictors_obs$nest_decay * NCS * PNB))
-# offset
-other_predictors_obs$offset_term <- log(other_predictors_obs$length_km * ESW *
-                                          2 * other_predictors_obs$nest_decay *
-                                          NCS * PNB)
-names_predictors_obs <- names(other_predictors_obs)
-
+predictors_obs <- aerial_predictors_obs %>%
+  bind_rows(other_predictors_obs)
+}else{
+  predictors_obs <- other_predictors_obs
+}
 
 # bind the two together
-predictors_obs <- aerial_predictors_obs %>%
-  bind_rows(other_predictors_obs) %>%
+predictors_obs <- predictors_obs %>%
   arrange(id) %>%
   dplyr::select(id, group, x_start:LU, length_km:nest_decay,
                 year, deforestation_gaveau:temp_mean, x_center, y_center,
