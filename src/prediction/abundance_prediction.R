@@ -257,7 +257,9 @@ for (predictor_name in additional_predictors){
 
 
 
-# RENAME PREDICTORS INTO PREDICTORS_GRID
+saveRDS(predictors_grid, file.path(outdir, paste0("predictors_grid_pred_", name_suffix,
+                                 year_to_predict, "_", Sys.Date(), ".rds")))
+
 
 #--------------------------#
 # PREDICTION FOR each year #
