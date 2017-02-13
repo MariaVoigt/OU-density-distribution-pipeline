@@ -34,10 +34,6 @@ option_list <- list (
   make_option(c("-i", "--input-directory"),  dest = "input_directory",
               type = "character", help = "directory with input files",
               metavar = "/path/to/input-dir"),
-  make_option("--predictor-input-directory",
-              dest = "pred_input_directory", type = "character",
-              help = "directory with predictor input files",
-              metavar = "/path/to/pred_input-dir"),
   make_option(c("-o", "--output-directory"), dest = "output_directory",
                type = "character", help = "directory with output files",
                metavar = "/path/to/output-dir"),
@@ -63,10 +59,6 @@ options <- parse_args(OptionParser(option_list=option_list))
 # sanity checks
 
 if (is.null(options$input_directory)) {
-  stop("input directory not specified, check --help")
-}
-
-if (is.null(options$pred_input_directory)) {
   stop("input directory not specified, check --help")
 }
 
@@ -100,8 +92,8 @@ indir <- options$input_directory
 if(is_verbose){print(paste("indir", indir))}
 
 # input directory
-indir_predictors <- options$pred_input_directory
-if(is_verbose){print(paste("indir_predictors", indir_predictors))}
+indir <- options$pred_input_directory
+if(is_verbose){print(paste("indir", indir))}
 
 # directory in which output is written
 outdir <- options$output_directory
@@ -171,18 +163,20 @@ predictor_names <- predictor_names_coeffs[!grepl("I(*)", predictor_names_coeffs)
 #----------------------------#
 # Load and prepare estimates #
 #----------------------------#
-geography_path <- path.to.current(indir_predictors, paste0("geography_",
+geography_path <- path.to.current(indir, paste0("geography_",
                                                             year_to_predict),"rds")
 if(is_verbose){print(paste("this is geography path", geography_path))}
 geography <- readRDS(geography_path)
 
-predictors_path <- path.to.current(indir_predictors, paste0("predictors_abundance_",
+predictors_path <- path.to.current(indir, paste0("predictors_abundance_",
                                                  year_to_predict),"rds")
 if(is_verbose){print(paste("this is predictors path", predictors_path))}
 predictors <- readRDS(predictors_path)
 
-predictors_obs_path <- path.to.current(indir_predictors,
-                                       paste0("predictors_obs_", name_suffix),
+# import here the already z-transformed or not
+predictors_obs_path <- path.to.current(indir,
+                                       paste0("predictors_observation_scaled_",
+                                              name_suffix),
                                               "rds")
 if(is_verbose){print(paste("this is predictors-obs path", predictors_obs_path))}
 
