@@ -37,6 +37,5 @@ QSUB="qsub -terse -v OUTPUT_PATH=$OUTPUT_PATH -o /work/$USER/$NAME.log -j y"
     -t 1999:2015 \
     $HOME/orangutan_density_distribution/src/prediction/submit_abundance_pred.sh \
     -i $OUTPUT_PATH \
-    --predictor-input-directory $INPUT_PATH \
     -q)
 
