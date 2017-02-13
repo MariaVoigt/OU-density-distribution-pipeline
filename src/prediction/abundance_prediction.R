@@ -304,13 +304,10 @@ saveRDS(pred_per_cell,
 #-----------------------#
 if(is_verbose){print(paste(Sys.time(), "3. Start making map"))}
 
-geography_grid_path <- path.to.current(indir_predictors,
-                                       paste0("geography_", year_to_predict), "rds")
-geography_grid <- readRDS(geography_grid_path)
 
-geography_grid_for_join <- dplyr::select(geography_grid, id, x_start, y_start)
+geography_for_join <- dplyr::select(geography, id, x_start, y_start)
 
-pred_per_cell_sp <- left_join(geography_grid_for_join,
+pred_per_cell_sp <- left_join(geography_for_join,
                               pred_per_cell, by = "id") %>%
   as.data.frame()
 
