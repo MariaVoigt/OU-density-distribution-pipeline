@@ -102,6 +102,7 @@ if(is_verbose){print(paste("indir_fun", indir_fun))}
 cl <- makeForkCluster(outfile = "")
 registerDoParallel(cl)
 
+source(file.path(indir_fun, "project_functions/scale.predictors.R"))
 source(file.path(indir_fun, "roger_functions/rogers_model_functions.R"))
 source(file.path(indir_fun, "generic/path.to.current.R"))
 source(file.path(indir_fun, "roger_functions/aic_c_fac.r"))
@@ -171,16 +172,14 @@ predictor_names_for_scaling <- c( "dem", "slope", "temp_mean", "rain_dry", "rain
                                   "road_dens", "distance_PA", "fire_dens", "deforestation_hansen",
                                   "deforestation_gaveau", "plantation_distance", "pulp_distance", "palm_distance",
                                   "dom_T_OC", "dom_T_PH")
-# predictors used in model
-predictor_names <- c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
-                    "peatswamp", "lowland_forest",
-                    "lower_montane_forest", "deforestation_hansen",
-                    "human_pop_dens", "ou_killing_prediction",
-                    "perc_muslim" )
 
+# additional predictors that have to be scaled: year and x- and y-center
+predictor_names_add <- c("year", "x_center", "y_center")
+
+
+# prepare predictors data-frame
 predictors <- dplyr::select(predictors, id, predictor, unscaled_year = year,
                             unscaled_value = value)
-
 
 # need to get rid of occurrence data
 predictors <- predictors %>%
@@ -192,54 +191,35 @@ if (include_aerial == F){
   predictors <- filter(predictors, group != "aerial")
 }
 
-# SCALE PREDICTORD
-for (predictor_name in predictor_names_for_scaling){
-  predictors[predictors$predictor == predictor_name,
-             "value" ] <-
-    as.numeric(as.vector(scale(predictors[predictors$predictor == predictor_name,
-                                          "unscaled_value"])))
-}
-
-
-predictors$year <- as.numeric(as.vector(scale(predictors[ , "unscaled_year"])))
-
-
-
 # delete all rows that have zero
 if(is_verbose){print("how many rows with na in scaled_value")
-  nrow(predictors[is.na(predictors$value),  ])}
+  nrow(predictors[is.na(predictors$unscaled_value),  ])}
 # deleting is.na values here
-predictors <- predictors[!is.na(predictors$value), ]
+predictors <- predictors[!is.na(predictors$unscaled_value), ]
 
-geography <- dplyr::select(geography, -c(year))
+# scale predictors
+predictors_obs <- scale.predictors.observation(predictor_names_for_scaling,
+                                   predictor_names_add,
+                                   predictors,
+                                   geography)
 
-# Rename here1
-predictors_obs <- predictors %>%
-  dplyr::filter(predictor %in% predictor_names_for_scaling)%>%
-  dcast(id + year ~ predictor,  value.var = "value") %>%
-  inner_join(geography, by = "id")%>%
+predictors_obs <- geography %>%
+  dplyr::select(-c(year,
+                   unscaled_x_center,
+                   unscaled_y_center)) %>%
   dplyr::select(-group) %>%
-  inner_join(transects, by = "id" )
+  inner_join(transects, by = "id") %>%
+  inner_join(predictors_obs, by = "id")
 
 
 
-predictors_obs_unscaled <- predictors %>%
-  dplyr::filter(predictor %in% predictor_names_for_scaling)%>%
-  dcast(id + unscaled_year ~ predictor,  value.var = "unscaled_value")
 
-
-names(predictors_obs_unscaled)[-c(1,2)] <- paste0("unscaled_",
-                                                  names(predictors_obs_unscaled)[-c(1,2)])
-
-predictors_obs <- left_join(predictors_obs, predictors_obs_unscaled, by = "id")
-
-
-# scale x and y center
-predictors_obs$x_center <- as.numeric(as.vector(scale(predictors_obs[ ,
-                                                                      "unscaled_x_center"])))
-
-predictors_obs$y_center <- as.numeric(as.vector(scale(predictors_obs[ ,
-                                                                      "unscaled_y_center"])))
+# predictors used in model
+predictor_names <- c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
+                     "peatswamp", "lowland_forest",
+                     "lower_montane_forest", "deforestation_hansen",
+                     "human_pop_dens", "ou_killing_prediction",
+                     "perc_muslim" )
 
 
 #  ou density and offset term for ground and absence transects
@@ -276,10 +256,6 @@ predictors_obs <- aerial_predictors_obs %>%
 # bind the two together
 predictors_obs <- predictors_obs %>%
   arrange(id) %>%
-  dplyr::select(id, group, x_start:LU, length_km:nest_decay,
-                year, deforestation_gaveau:temp_mean, x_center, y_center,
-                unscaled_year:unscaled_temp_mean, unscaled_x_center,
-                unscaled_y_center, ou_dens, offset_term) %>%
   as.data.frame(.)
 
 
@@ -287,9 +263,8 @@ if(is_verbose){print("look at predictors_obs")
   str(predictors_obs)
   summary(predictors_obs)}
 
-# save this
-# save the relevant output for the prediction and the validation
-saveRDS(predictors_obs, file = file.path(outdir, paste0("predictors_obs_",
+# save the relevant output for the prediction and the validation (USED IN THESE SCRIPTS)
+saveRDS(predictors_obs, file = file.path(outdir, paste0("predictors_observation_scaled_",
                                                           name_suffix,
                                                           Sys.Date(), ".rds")))
 
