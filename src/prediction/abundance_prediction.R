@@ -121,12 +121,17 @@ if (is.na(exclude_year)){
     name_suffix <- paste0(exclude_year, "_")
   }
 
-#-------------------------------#
-# Load and prepare coefficients #
-#-------------------------------#
+#----------------#
+# Load functions #
+#----------------#
 # Load functions
 source(file.path(indir_fun, "generic/path.to.current.R"))
+source(file.path(indir_fun, "project_functions/scale.predictors.R"))
 
+
+#----------------------#
+# Prepare coefficients #
+#----------------------#
 # Load coefficients and weights
 abundMod_results_path <- path.to.current(indir, "abundMod_results", "rds" )
 if(is_verbose){print(paste("this is abundMod_results_path:", abundMod_results_path))}
@@ -192,12 +197,7 @@ predictor_names_for_scaling <- c( "dem", "slope", "temp_mean", "rain_dry", "rain
                                   "deforestation_gaveau", "plantation_distance", "pulp_distance", "palm_distance",
                                   "dom_T_OC", "dom_T_PH")
 
-# predictors used in model
-predictor_names <- c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
-                     "peatswamp", "lowland_forest",
-                     "lower_montane_forest", "deforestation_hansen",
-                     "human_pop_dens", "ou_killing_prediction",
-                     "perc_muslim" )
+predictor_names_add <- c("year", "x_center", "y_center")
 
 predictors <- rename(predictors, unscaled_value = value)
 
@@ -207,52 +207,25 @@ geography$unscaled_y_center <- rowMeans(cbind(geography$y_start, geography$y_end
 
 
 
-for (predictor_name in predictor_names_for_scaling){
-  mean_predictor_obs <- mean(predictors_obs[ , paste0("unscaled_", predictor_name)], na.rm = T)
-  sd_predictor_obs <- mean(predictors_obs[ , paste0("unscaled_", predictor_name)], na.rm = T)
-  predictors[predictors$predictor == predictor_name,
-             "value" ] <- (predictors[predictors$predictor == predictor_name,
-                                     "unscaled_value" ] - mean_predictor_obs) /
-                                      sd_predictor_obs
-
-}
+# function here
+predictors_grid <- scale.predictors.grid(predictor_names_for_scaling,
+                                  predictor_names_add,
+                                  predictors,
+                                  predictors_obs,
+                                  geography)
 
 
-# cast it to wide
-
-predictors_grid <- dplyr::filter(predictors, predictor %in% predictor_names_for_scaling)  %>%
-  dcast(id + year ~ predictor,  value.var = "value") %>%
-  dplyr::select(-year)
-
-
-predictors_grid_unscaled <- dplyr::filter(predictors, predictor %in% predictor_names_for_scaling ) %>%
-  dcast(id + year ~ predictor,  value.var = "unscaled_value") %>%
-  rename(unscaled_year = year)
-names(predictors_grid_unscaled)[-c(1,2)] <- paste0("unscaled_", names(predictors_grid_unscaled)[-c(1, 2)])
-
-# join with geography to have x and y-center
-
-predictors_grid <- predictors_grid %>%
-  left_join(predictors_grid_unscaled, by = "id") %>%
-  left_join(geography, by = "id")
-
-
-# year and x- and y-center
-additional_predictors <- c("year", "x_center", "y_center")
-
-for (predictor_name in additional_predictors){
-  mean_predictor_obs <- mean(predictors_obs[ , paste0("unscaled_", predictor_name)], na.rm = T)
-  sd_predictor_obs <- mean(predictors_obs[ , paste0("unscaled_", predictor_name)], na.rm = T)
-  predictors_grid[ ,
-             predictor_name] <- (predictors_grid[ ,
-                                      paste0("unscaled_", predictor_name) ] - mean_predictor_obs) /
-    sd_predictor_obs
-}
-
-
-
-saveRDS(predictors_grid, file.path(outdir, paste0("predictors_grid_pred_", name_suffix,
+saveRDS(predictors_grid, file.path(outdir, paste0("predictors_grid_scaled_", name_suffix,
                                  year_to_predict, "_", Sys.Date(), ".rds")))
+
+
+
+# predictors used in model
+predictor_names <- c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
+                     "peatswamp", "lowland_forest",
+                     "lower_montane_forest", "deforestation_hansen",
+                     "human_pop_dens", "ou_killing_prediction",
+                     "perc_muslim" )
 
 
 #--------------------------#
