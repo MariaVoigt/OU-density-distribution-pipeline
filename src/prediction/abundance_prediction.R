@@ -86,14 +86,9 @@ if (!(options$year_to_predict %in% year_to_predict_possibilities)) {
 # is quiet?
 is_verbose <- options$verbose_script
 # input directory
-
-
 indir <- options$input_directory
 if(is_verbose){print(paste("indir", indir))}
 
-# input directory
-indir <- options$pred_input_directory
-if(is_verbose){print(paste("indir", indir))}
 
 # directory in which output is written
 outdir <- options$output_directory
