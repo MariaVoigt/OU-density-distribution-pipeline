@@ -73,8 +73,8 @@ scale.predictors.grid <- function(predictor_names_for_scaling,
 
 
   for (predictor_name in predictor_names_for_scaling){
-    mean_predictor_obs <- mean(predictors_obs[ , paste0("unscaled_", predictor_name)], na.rm = T)
-    sd_predictor_obs <- mean(predictors_obs[ , paste0("unscaled_", predictor_name)], na.rm = T)
+    mean_predictor_obs <- mean(predictors_obs[ , paste0("unscaled_", predictor_name)])
+    sd_predictor_obs <- sd(predictors_obs[ , paste0("unscaled_", predictor_name)])
     predictors[predictors$predictor == predictor_name,
                "value" ] <- (predictors[predictors$predictor == predictor_name,
                                         "unscaled_value" ] - mean_predictor_obs) /
@@ -107,8 +107,8 @@ scale.predictors.grid <- function(predictor_names_for_scaling,
  predictors_grid$y_center <- NA
 
   for (predictor_name in predictor_names_add){
-    mean_predictor_obs <- mean(predictors_obs[ , paste0("unscaled_", predictor_name)], na.rm = T)
-    sd_predictor_obs <- mean(predictors_obs[ , paste0("unscaled_", predictor_name)], na.rm = T)
+    mean_predictor_obs <- mean(predictors_obs[ , paste0("unscaled_", predictor_name)])
+    sd_predictor_obs <- sd(predictors_obs[ , paste0("unscaled_", predictor_name)])
     predictors_grid[ ,
                      predictor_name] <- (predictors_grid[ ,
                                          paste0("unscaled_", predictor_name) ] -
