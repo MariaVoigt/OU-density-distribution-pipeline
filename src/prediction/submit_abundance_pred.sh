@@ -4,7 +4,7 @@
 
 #$ -S /bin/bash
 
-#$ -l h_rt=48:00:00
+#$ -l h_rt=24:00:00
 #$ -l h_vmem=3G
 
 #$ -o /work/$USER/$JOB_NAME-$JOB_ID-$TASK_ID.log
