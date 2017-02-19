@@ -6,9 +6,9 @@
 
 
 # here somehow write the prefix depending on what we are testing
-JOB_NAME_PREFIX=ppln_ae75m_50_ac
+JOB_NAME_PREFIX=ppln_ae75m_80
 
-INPUT_PATH='/work/voigtma/ppln_ae75m_50_ac-2017-02-15T14-23-58'
+INPUT_PATH='/work/voigtma/ppln_ae75m_80-2017-02-18T22-34-53'
 NAME=$JOB_NAME_PREFIX-$(date +%FT%H-%M-%S)
 
 OUTPUT_PATH=$INPUT_PATH
@@ -24,7 +24,7 @@ QSUB="qsub -terse -v OUTPUT_PATH=$OUTPUT_PATH -o /work/$USER/$NAME.log -j y"
 
   MODEL_JOB_ID_FITTING=$($QSUB  \
     -N ${JOB_NAME_PREFIX}_fitting \
-    $HOME/orangutan_density_distribution/src/model_fitting/submit_abundance_model_ac_term.sh \
+    $HOME/orangutan_density_distribution/src/model_fitting/submit_abundance_model.sh \
     -i $INPUT_PATH \
     --ESW-aerial 0.075 \
     --include-aerial \
@@ -37,5 +37,5 @@ QSUB="qsub -terse -v OUTPUT_PATH=$OUTPUT_PATH -o /work/$USER/$NAME.log -j y"
     -hold_jid $MODEL_JOB_ID_FITTING \
     -t 1999:2015 \
     $HOME/orangutan_density_distribution/src/prediction/submit_abundance_pred.sh \
-    -i $OUTPUT_PATH )
+    -i $INPUT_PATH )
 
