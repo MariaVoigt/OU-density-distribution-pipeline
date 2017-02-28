@@ -365,36 +365,40 @@ write.csv(dfbeta_frame, file.path(outdir,
 if(is_verbose){print(paste("8. Start running models", Sys.time()))}
 
 
-if (is.na(exclude_year)){
-result <- as.data.frame(matrix(NA, ncol = 3 * length(model_terms) + 4, #5,
-                               nrow = 1))
-names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
-                   paste("P",model_terms,sep = "_"),
-                   paste("SE", model_terms, sep = "_"),
-		   "theta", "SE.theta", "AIC" #, "R2"
-                   )
-} else {
-    result <- as.data.frame(matrix(NA, ncol = 3 * length(model_terms) +5, #+ 6,
-                                   nrow = 1))
-    names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
-                       paste("P",model_terms,sep = "_"),
-                       paste("SE", model_terms, sep = "_"),
-                       "theta", "SE.theta", "AIC", #"R2",
-                       "R2_cross")
-}
+
 
 
 results_res <- foreach(i = 1:nrow(all_model_terms),
                        .combine = rbind) %dopar%{
+    # make results dataframe
+    if (is.na(exclude_year)){
+      result <- as.data.frame(matrix(NA, ncol = 3 *
+                                       length(model_terms) + 4, #5
+                                     nrow = 1))
+                           names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
+                                              paste("P",model_terms,sep = "_"),
+                                              paste("SE", model_terms, sep = "_"),
+                                              "theta", "SE.theta", "AIC" #, "R2"
+                           )} else {
+      result <- as.data.frame(matrix(NA, ncol = 3 *
+                                       length(model_terms) +5, #+ 6,
+                                                          nrow = 1))
+      names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
+                                              paste("P",model_terms,sep = "_"),
+                                              paste("SE", model_terms, sep = "_"),
+                                              "theta", "SE.theta", "AIC", #"R2",
+                                              "R2_cross")
+                         }
+    # make model
     model <- as.formula(
             paste("nr_nests ~",
 	    paste(m_terms[all_model_terms[i, ] == 1], collapse = "+"),
             "+ offset(offset_term)"))
-            res <- glm.nb(model, data = predictors_obs,
+    res <- glm.nb(model, data = predictors_obs,
                           control = glm.control(maxit = 250))
 
 
-# model
+   # model
     result[ , "model"] <- paste(m_terms[all_model_terms[i, ] == 1], collapse = "+")
 
     # coefficients
@@ -412,10 +416,10 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
         res$coefficients)]#add line for SE
 
     # theta
-   result[ , "theta"] <- summary(res)$theta
-   result[ , "SE.theta"] <- summary(res)$SE.theta
+    result[ , "theta"] <- summary(res)$theta
+    result[ , "SE.theta"] <- summary(res)$SE.theta
 
-    # aic in last column,
+     # aic in last column,
     result[ , "AIC"] <- extractAIC(res)[2]
 
     # what do I need to do
@@ -428,10 +432,10 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
     #                                        newdata = predictors_obs_pred,
     #                                        type = "response")
 
-   # comparison_lm = lm(log(predictors_obs$nr_ou_per_km2 + 1) ~
-   #                    log(prediction_per_transect + 1) )
+    # comparison_lm = lm(log(predictors_obs$nr_ou_per_km2 + 1) ~
+    #                    log(prediction_per_transect + 1) )
 
-#    result[ , "R2"] <- summary(comparison_lm)$r.squared
+    #    result[ , "R2"] <- summary(comparison_lm)$r.squared
     # if we are excluding years, this is the test of predicted data vs observed data
     # for this year (with which the model wasn't fitted)
     if (!is.na(exclude_year)){
