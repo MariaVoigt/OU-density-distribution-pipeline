@@ -6,9 +6,9 @@
 
 
 # here somehow write the prefix depending on what we are testing
-JOB_NAME_PREFIX=ppln_ae75m_80
+JOB_NAME_PREFIX=ppln_ae75m_50
 
-INPUT_PATH='/work/voigtma/ppln_ae75m_80-2017-02-18T22-34-53'
+INPUT_PATH='/work/voigtma/ppln_ae75m_50-2017-02-14T16-39-11'
 NAME=$JOB_NAME_PREFIX-$(date +%FT%H-%M-%S)
 
 OUTPUT_PATH=$INPUT_PATH
