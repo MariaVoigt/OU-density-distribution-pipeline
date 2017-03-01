@@ -137,7 +137,7 @@ if(is_verbose){print(paste("transect_path", transects_path))}
 transects <- readRDS(transects_path)
 
 
-predictors_path <- path.to.current(indir, "predictors_observation", "rds")
+predictors_path <- path.to.current(indir, "predictors_observation_20", "rds")
 if(is_verbose){print(paste("predictors-path", predictors_path))}
 predictors <- readRDS(predictors_path)
 
