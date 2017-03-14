@@ -103,6 +103,8 @@ if(is_verbose){print(paste("m_terms_path", m_terms_path))}
 m_terms <- readRDS(m_terms_path)
 
 
+save.image(file.path(outdir, "image_temp.RData"))
+
 
 ests=apply(abundMod_results [, grepl(x=colnames(abundMod_results ), pattern="coeff")], 2, function(x){
 	x[is.na(x)]=0
@@ -115,6 +117,7 @@ SEs=apply(abundMod_results [, grepl(x=colnames(abundMod_results ), pattern="SE")
 SEs=SEs[-length(SEs)]
 names(ests)=gsub(x=names(ests), pattern="coeff_", replacement="", fixed=T)
 names(SEs)=gsub(x=names(SEs), pattern="SE_", replacement="", fixed=T)
+if(is_verbose){"sum of names of est that is not in SEs"}
 sum(names(ests)!=names(SEs))
 
 theta=sum(abundMod_results $theta*abundMod_results$w_aic)
