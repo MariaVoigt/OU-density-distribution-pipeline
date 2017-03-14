@@ -4,13 +4,13 @@
 
 #$ -S /bin/bash
 
-#$ -l h_rt=12:00:00
+#$ -l h_rt=1:00:00
 #$ -l h_vmem=10G,highmem
 
 #$ -o /work/$USER/$JOB_NAME-$JOB_ID.log
 #$ -j y
 
-#$ -pe smp 10-28
+#$ -pe smp 2-28
 
 
 #$ -m ea
@@ -28,6 +28,6 @@ mkdir -p ${OUTPUT_PATH:=/work/$USER/$JOB_NAME-$JOB_ID}
 export MC_CORES=${NSLOTS:-1}
 
 Rscript \
-    ~/orangutan_density_distribution/src/validation/abundance_model_bootstrap.R \
+    ~/orangutan_density_distribution/src/validation/marias_boot_correct.R \
     -o $OUTPUT_PATH \
     "$@"
