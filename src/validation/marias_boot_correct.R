@@ -76,6 +76,8 @@ registerDoParallel(cl)
 source(file.path(indir_fun, "roger_functions/rogers_model_functions.R"))
 source(file.path(indir_fun, "generic/path.to.current.R"))
 source(file.path(indir_fun, "roger_functions/get_conf_set.r"))
+source(file.path(indir_fun, "roger_functions/helpers.r"))
+source(file.path(indir_fun, "roger_functions/diagnostic_fcns.r"))
 
 options("scipen" = 100, "digits" = 4)
 
@@ -94,16 +96,13 @@ abundMod_results_path <- path.to.current(indir, "abundMod_results", "rds")
 if(is_verbose){print(paste("abundMod_results_path", abundMod_results_path))}
 abundMod_results <- readRDS(abundMod_results_path)
 
-predictors_path <- path.to.current(indir, "predictors_observation", "rds")
+predictors_path <- path.to.current(indir, "predictors_observation_scaled", "rds")
 if(is_verbose){print(paste("predictors-path", predictors_path))}
 predictors_obs <- readRDS(predictors_path)
 
 m_terms_path <- path.to.current(indir, "m_terms", "rds")
 if(is_verbose){print(paste("m_terms_path", m_terms_path))}
 m_terms <- readRDS(m_terms_path)
-
-
-save.image(file.path(outdir, "image_temp.RData"))
 
 
 ests=apply(abundMod_results [, grepl(x=colnames(abundMod_results ), pattern="coeff")], 2, function(x){
@@ -132,7 +131,7 @@ if(is_verbose){"finished saving all variables"}
 
 parLapply(cl=cl, X=1:length(cl), function(x){library(MASS)})
 
-n.boots=5
+n.boots=1000
 n.attempts=rep(0, n.boots)
 all.boots=matrix(NA, ncol=length(m_terms), nrow=n.boots)
 colnames(all.boots)=m_terms
@@ -173,12 +172,19 @@ print(paste("this is the ", i, "boot"))
 	}
 	xx=apply(all.ests, 2, function(x){sum(x*w.aic)})
 	all.boots[i, names(xx)]=xx
-	points(i, 1, col=rainbow(n.boots)[i], pch=19, cex=sqrt(n.attempts[i]))
+#	points(i, 1, col=rainbow(n.boots)[i], pch=19, cex=sqrt(n.attempts[i]))
 }
 
 
 saveRDS(all.boots, file = file.path(outdir, paste0("all_boots_",
                                                    Sys.Date(), ".rds")))
+
+xx=cbind(ests, t(apply(all.boots, 2, quantile, probs=c(0.025, 0.975))))
+
+
+saveRDS(xx, file = file.path(outdir, paste0("xx_",
+                                                   Sys.Date(), ".rds")))
+
 
 save.image(file.path(outdir, paste0("abundance_model_bootstrap_",
                                     Sys.Date(), ".RData")))
