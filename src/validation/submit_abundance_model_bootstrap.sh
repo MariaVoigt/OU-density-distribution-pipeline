@@ -4,13 +4,13 @@
 
 #$ -S /bin/bash
 
-#$ -l h_rt=1:00:00
-#$ -l h_vmem=10G,highmem
+#$ -l h_rt=168:00:00
+#$ -l h_vmem=6G
 
 #$ -o /work/$USER/$JOB_NAME-$JOB_ID.log
 #$ -j y
 
-#$ -pe smp 2-28
+#$ -pe smp 20-28
 
 
 #$ -m ea
