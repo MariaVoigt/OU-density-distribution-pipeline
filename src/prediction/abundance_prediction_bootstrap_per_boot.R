@@ -174,8 +174,7 @@ names(predictor_estimates) <- c("intercept", predictor_names,
 
 if(is_verbose){print(paste("1. start pred_per_cell", Sys.time()))}
 
-#  pred_per_cell <- foreach(cell = 1:nrow(predictor_estimates), .combine = c)  %dopar% {
-  pred_per_cell <- foreach(cell = 1:700, .combine = cbind)  %dopar% {
+  pred_per_cell <- foreach(cell = 1:nrow(predictor_estimates), .combine = c)  %dopar% {
     t_predictor_estimates <- t( predictor_estimates[cell, ])
     pred_estimates_wcoeffs  <- data.frame(mapply(`*`, all_boots[nr_boot, ], t_predictor_estimates, SIMPLIFY = F))
     pred_estimate_cell <- apply(pred_estimates_wcoeffs, 1, sum)
