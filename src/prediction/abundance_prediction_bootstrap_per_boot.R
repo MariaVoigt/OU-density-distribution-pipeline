@@ -134,31 +134,35 @@ all_boots <- readRDS(all_boots_path) %>%
 # HERE it already starts to be year specific
 
 years_to_predict <- 1999:2015
+#preds in model
+predictor_names <- c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
+                        "peatswamp", "lowland_forest",
+			"lower_montane_forest", "deforestation_hansen",
+			"human_pop_dens", "ou_killing_prediction",
+			"perc_muslim" )
 
-pred_per_boot <- foreach(year_to_predict = years_to_predict, .combine = rbind)  %do% {
+quadratic_terms_names <- c("rain_dry")
+
+
+pred_per_boot <- foreach(year_to_predict = years_to_predict, .combine = cbind)  %dopar% {
 
 suppressPackageStartupMessages(library(stringr))
+suppressMessages(library(doParallel))
+    
     
 predictors_grid_path <- path.to.current(indir, paste0("predictors_grid_scaled_",
                                                              year_to_predict),
                                         "rds")
-if(is_verbose){print(paste("this is predictors_grid_path", predictors_grid_path))}
+
 predictors_grid <- readRDS(predictors_grid_path)
 
- # predictors used in model
-predictor_names <- c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
-                        "peatswamp", "lowland_forest",
-                        "lower_montane_forest", "deforestation_hansen",
-                        "human_pop_dens", "ou_killing_prediction",
-                                             "perc_muslim" )
-
-quadratic_terms_names <- c("rain_dry")
 
 intercept <- rep(1, nrow(predictors_grid))
+
 predictor_estimates <- cbind( intercept,
                               predictors_grid[ , predictor_names],
-			                                    predictors_grid[ ,quadratic_terms_names] * predictors_grid[ ,quadratic_terms_names])
-
+			      predictors_grid[ ,quadratic_terms_names] * predictors_grid[ ,quadratic_terms_names])
+											    
 names(predictor_estimates) <- c("intercept", predictor_names,
                                 paste0("I(", quadratic_terms_names, "^2)"))
 
@@ -174,53 +178,38 @@ names(predictor_estimates) <- c("intercept", predictor_names,
 
     
 if(is_verbose){print(paste("1. start pred_per_cell", Sys.time()))}
-
-  #pred_per_cell <- foreach(cell = 1:nrow(predictor_estimates), .combine = c)  %dopar% {
-   pred_per_cell <- foreach(cell = 1:10, .combine = c)  %dopar% {
+  pred_per_cell <- foreach(cell = 1:nrow(predictor_estimates), .combine = c)  %do% {
     t_predictor_estimates <- t( predictor_estimates[cell, ])
     pred_estimates_wcoeffs  <- data.frame(mapply(`*`, all_boots[nr_boot, ], t_predictor_estimates, SIMPLIFY = F))
     pred_estimate_cell <- apply(pred_estimates_wcoeffs, 1, sum)
     pred_estimate_cell <- exp(pred_estimate_cell)
   return(pred_estimate_cell)
     }
-  return(pred_per_boot)
+  return(pred_per_cell)
 }
-
 
 
 if(is_verbose){print(paste(Sys.time(), "2. finished dopar loop"))}
 
 pred_per_boot <- as.data.frame(pred_per_boot)
 
-sum_years <- as.data.frame(cbind(years_to_predict, pred_per_boot$V1))
-names(sum_years) <- c("year", "sum")
-min_years <- as.data.frame(cbind(years_to_predict, pred_per_boot$V2))
-names(min_years) <- c("year", "min")
-max_years <- as.data.frame(cbind(years_to_predict, pred_per_boot$V3))
-names(max_years) <- c("year", "max")
+
+names(pred_per_boot) <- paste0("year_", c(1999:2015))
 
 
-
-saveRDS(sum_years,
+saveRDS(pred_per_boot,
         file = file.path(outdir,
-        paste0("bootstrapped_abundance_sum_boot_",
+        paste0("bootstrapped_pred_per_pixel_",
                                 nr_boot, "_",
                                 Sys.Date(), ".rds")))
-saveRDS(min_years,
-        file = file.path(outdir,
-	        paste0("bootstrapped_abundance_min_boot_",
-		                                nr_boot, "_",
-						Sys.Date(), ".rds")))
-
-saveRDS(max_years,
-        file = file.path(outdir,
-	        paste0("bootstrapped_abundance_max_boot_",
-		                                nr_boot, "_",
-						Sys.Date(), ".rds")))
 
 
 
 print(paste("Finish model_prediction script for boot", nr_boot,
             Sys.time()))
 
+
+if (options$worker > 1) {
+  stopCluster(cl)
+    }
 
