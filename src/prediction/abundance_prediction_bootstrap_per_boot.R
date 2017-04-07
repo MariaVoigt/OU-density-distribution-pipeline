@@ -172,18 +172,17 @@ names(predictor_estimates) <- c("intercept", predictor_names,
 # but takes a bit longer (52s, to 35s for 100 rows)
 ## PLUS PAY ATTENTION, IF PREDICTIONS NOT SAME NROW--> VALUES GET RECYCLED
 
+    
 if(is_verbose){print(paste("1. start pred_per_cell", Sys.time()))}
 
-  pred_per_cell <- foreach(cell = 1:nrow(predictor_estimates), .combine = c)  %dopar% {
+  #pred_per_cell <- foreach(cell = 1:nrow(predictor_estimates), .combine = c)  %dopar% {
+   pred_per_cell <- foreach(cell = 1:10, .combine = c)  %dopar% {
     t_predictor_estimates <- t( predictor_estimates[cell, ])
     pred_estimates_wcoeffs  <- data.frame(mapply(`*`, all_boots[nr_boot, ], t_predictor_estimates, SIMPLIFY = F))
     pred_estimate_cell <- apply(pred_estimates_wcoeffs, 1, sum)
     pred_estimate_cell <- exp(pred_estimate_cell)
   return(pred_estimate_cell)
     }
-    pred_per_boot <- c(sum(pred_per_cell),
-                       min(pred_per_cell),
-                       max(pred_per_cell))      
   return(pred_per_boot)
 }
 
