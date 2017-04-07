@@ -197,11 +197,11 @@ pred_per_boot <- as.data.frame(pred_per_boot)
 names(pred_per_boot) <- paste0("year_", c(1999:2015))
 
 
-saveRDS(pred_per_boot,
+write.csv(pred_per_boot,
         file = file.path(outdir,
         paste0("bootstrapped_pred_per_pixel_",
                                 nr_boot, "_",
-                                Sys.Date(), ".rds")))
+                                Sys.Date(), ".csv")), row.names = F)
 
 
 
