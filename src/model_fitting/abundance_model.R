@@ -36,6 +36,8 @@ option_list <- list (
 	      help = "aerial effective strip width"),
   make_option("--exclude-year",    dest = "exclude_year", type = "integer",
              default = NA, help = "year to exclude", metavar = "2015"),
+ make_option("--exclude-grid",    dest = "exclude_grid", type = "integer",
+             default = NA, help = "grid_cells_to_exclude", metavar = "1"),
   make_option("--include-aerial",
               dest = "include_aerial", action="store_true",
               default=FALSE,      help="include aerial transects"),
@@ -90,7 +92,8 @@ if(is_verbose){print(paste("include_aerial", include_aerial))}
 exclude_year <- options$exclude_year
 if(is_verbose){print(paste("exclude year", exclude_year))}
 
-
+exclude_grid <- options$exclude_grid
+if(is_verbose){print(paste("exclude grid", exclude_grid))}
 
 #---------#
 # Globals #
@@ -103,7 +106,6 @@ cl <- makeForkCluster(outfile = "")
 registerDoParallel(cl)
 
 source(file.path(indir_fun, "project_functions/scale.predictors.R"))
-source(file.path(indir_fun, "project_functions/assign.grid.id.R"))
 source(file.path(indir_fun, "roger_functions/rogers_model_functions.R"))
 source(file.path(indir_fun, "generic/path.to.current.R"))
 source(file.path(indir_fun, "roger_functions/aic_c_fac.r"))
@@ -120,10 +122,12 @@ PNB <- 0.88  #  proportion of nest builders from Spehar et al. 2010
 options("scipen" = 100, "digits" = 4)
 
 
-if (is.na(exclude_year)){
-  name_suffix <- ""} else {
-    name_suffix <- paste0(exclude_year, "_")
-  }
+if (is.na(exclude_year) & is.na(exclude_grid)){
+  name_suffix <- ""}
+   if(!is.na(exclude_year)){
+     name_suffix <- paste0(exclude_year, "_")}
+   if(!is.na(exclude_grid)){
+     name_suffix <- paste0(exclude_grid, "_")}
 
 #---------------#
 #  Import data  #
@@ -275,6 +279,12 @@ if (!is.na(exclude_year)){
     predictors_excluded_year <- predictors_obs[predictors_obs$unscaled_year == exclude_year, ]
     predictors_obs <- predictors_obs[predictors_obs$unscaled_year != exclude_year, ]}
 
+# or the grid_cell
+if (!is.na(exclude_grid)){
+  predictors_excluded_grid <- predictors_obs[predictors_obs$grid_id == exclude_grid, ]
+  predictors_obs <- predictors_obs[predictors_obs$s$grid_id != exclude_grid, ]}
+
+
 if(is_verbose){ print(paste("3. start making all_model_terms", Sys.time()))}
 
  # #build models needed for analysis with a function
@@ -372,7 +382,7 @@ if(is_verbose){print(paste("8. Start running models", Sys.time()))}
 results_res <- foreach(i = 1:nrow(all_model_terms),
                        .combine = rbind) %dopar%{
     # make results dataframe
-    if (is.na(exclude_year)){
+    if (is.na(exclude_year) | is.na(exclude_grid)){
       result <- as.data.frame(matrix(NA, ncol = 3 *
                                        length(model_terms) + 4, #5
                                      nrow = 1))
