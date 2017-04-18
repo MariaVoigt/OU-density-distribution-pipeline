@@ -103,7 +103,6 @@ cl <- makeForkCluster(outfile = "")
 registerDoParallel(cl)
 
 source(file.path(indir_fun, "project_functions/scale.predictors.R"))
-source(file.path(indir_fun, "project_functions/assign.grid.id.R"))
 source(file.path(indir_fun, "roger_functions/rogers_model_functions.R"))
 source(file.path(indir_fun, "generic/path.to.current.R"))
 source(file.path(indir_fun, "roger_functions/aic_c_fac.r"))
@@ -365,10 +364,6 @@ write.csv(dfbeta_frame, file.path(outdir,
 # #run models
 if(is_verbose){print(paste("8. Start running models", Sys.time()))}
 
-
-
-
-save.image(file.path(outdir, "image_before_fail.RData"))
 
 results_res <- foreach(i = 1:nrow(all_model_terms),
                        .combine = rbind) %dopar%{
