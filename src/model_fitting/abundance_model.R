@@ -282,7 +282,8 @@ if (!is.na(exclude_year)){
 # or the grid_cell
 if (!is.na(exclude_grid)){
   predictors_excluded_grid <- predictors_obs[predictors_obs$grid_id == exclude_grid, ]
-  predictors_obs <- predictors_obs[predictors_obs$s$grid_id != exclude_grid, ]}
+  predictors_obs <- predictors_obs[predictors_obs$grid_id != exclude_grid, ]
+}
 
 
 if(is_verbose){ print(paste("3. start making all_model_terms", Sys.time()))}
