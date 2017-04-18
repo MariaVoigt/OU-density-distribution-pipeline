@@ -376,28 +376,25 @@ write.csv(dfbeta_frame, file.path(outdir,
 if(is_verbose){print(paste("8. Start running models", Sys.time()))}
 
 
-
-
-
 results_res <- foreach(i = 1:nrow(all_model_terms),
                        .combine = rbind) %dopar%{
     # make results dataframe
     if (is.na(exclude_year) | is.na(exclude_grid)){
       result <- as.data.frame(matrix(NA, ncol = 3 *
-                                       length(model_terms) + 4, #5
+                                       length(model_terms) + 5,
                                      nrow = 1))
-                           names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
+       names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
                                               paste("P",model_terms,sep = "_"),
                                               paste("SE", model_terms, sep = "_"),
-                                              "theta", "SE.theta", "AIC" #, "R2"
+                                              "theta", "SE.theta", "AIC", "R2"
                            )} else {
       result <- as.data.frame(matrix(NA, ncol = 3 *
-                                       length(model_terms) +5, #+ 6,
+                                       length(model_terms) + 6,
                                                           nrow = 1))
       names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
                                               paste("P",model_terms,sep = "_"),
                                               paste("SE", model_terms, sep = "_"),
-                                              "theta", "SE.theta", "AIC", #"R2",
+                                              "theta", "SE.theta", "AIC", "R2",
                                               "R2_cross")
                          }
     # make model
@@ -435,25 +432,27 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
 
     # what do I need to do
     # I need to get only the prediction estimates columns that are true in
-    # all_model_terms[i, ]==1
-    # predictors_obs_pred <- predictors_obs
-    # predictors_obs_pred$offset_term <- 0
+    #all_model_terms[i, ]==1
+    predictors_obs_pred <- predictors_obs
+    predictors_obs_pred$offset_term <- 0
     # Comparison of observed data vs prediction
-    #  prediction_per_transect <-  predict.glm(res,
-    #                                        newdata = predictors_obs_pred,
-    #                                        type = "response")
+    prediction_per_transect <-  predict.glm(res,
+                                            newdata = predictors_obs_pred,
+                                            type = "response")
 
-    # comparison_lm = lm(log(predictors_obs$nr_ou_per_km2 + 1) ~
-    #                    log(prediction_per_transect + 1) )
+     comparison_lm = lm(log(predictors_obs$ou_dens + 1) ~
+                        log(prediction_per_transect + 1) )
 
-    #    result[ , "R2"] <- summary(comparison_lm)$r.squared
+        result[ , "R2"] <- summary(comparison_lm)$r.squared
     # if we are excluding years, this is the test of predicted data vs observed data
     # for this year (with which the model wasn't fitted)
-    if (!is.na(exclude_year)){
+  if (!is.na(exclude_year)){
+  predictors_excluded_year_pred <- predictors_excluded_year
+  predictors_excluded_year_pred$offset_term <- 0
   prediction_transect_excluded_year <-  predict.glm(res,
                                newdata = predictors_excluded_year,
 			       type = "response")
-  cross_lm = lm(log(predictors_excluded_year$nr_ou_per_km2 + 1) ~
+  cross_lm = lm(log(predictors_excluded_year$ou_dens+ 1) ~
                      log(prediction_transect_excluded_year + 1))
 
   result[ , "R2_cross"] <- summary(cross_lm)$r.squared
