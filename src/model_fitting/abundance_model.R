@@ -103,6 +103,7 @@ cl <- makeForkCluster(outfile = "")
 registerDoParallel(cl)
 
 source(file.path(indir_fun, "project_functions/scale.predictors.R"))
+source(file.path(indir_fun, "project_functions/assign.grid.id.R"))
 source(file.path(indir_fun, "roger_functions/rogers_model_functions.R"))
 source(file.path(indir_fun, "generic/path.to.current.R"))
 source(file.path(indir_fun, "roger_functions/aic_c_fac.r"))
