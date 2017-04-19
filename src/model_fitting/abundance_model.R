@@ -384,7 +384,7 @@ if(is_verbose){print(paste("8. Start running models", Sys.time()))}
 results_res <- foreach(i = 1:nrow(all_model_terms),
                        .combine = rbind) %dopar%{
     # make results dataframe
-    if (is.na(exclude_year) | is.na(exclude_grid)){
+    if (is.na(exclude_year) & is.na(exclude_grid)){
       result <- as.data.frame(matrix(NA, ncol = 3 *
                                        length(model_terms) + 5,
                                      nrow = 1))
