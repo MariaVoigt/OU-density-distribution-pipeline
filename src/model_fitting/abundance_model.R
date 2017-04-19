@@ -125,9 +125,9 @@ options("scipen" = 100, "digits" = 4)
 if (is.na(exclude_year) & is.na(exclude_grid)){
   name_suffix <- ""}
    if(!is.na(exclude_year)){
-     name_suffix <- paste0(exclude_year, "_")}
+     name_suffix <- paste0("year_", exclude_year, "_")}
    if(!is.na(exclude_grid)){
-     name_suffix <- paste0(exclude_grid, "_")}
+     name_suffix <- paste0("gridcell_", exclude_grid, "_")}
 
 #---------------#
 #  Import data  #
