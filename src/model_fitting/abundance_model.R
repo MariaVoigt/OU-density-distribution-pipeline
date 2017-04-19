@@ -37,7 +37,7 @@ option_list <- list (
   make_option("--exclude-year",    dest = "exclude_year", type = "integer",
              default = NA, help = "year to exclude", metavar = "2015"),
  make_option("--exclude-grid",    dest = "exclude_grid", type = "integer",
-             default = NA, help = "grid_cells_to_exclude", metavar = "1"),
+             default = NA, help = "index of grid-cells to exclude", metavar = "1"),
   make_option("--include-aerial",
               dest = "include_aerial", action="store_true",
               default=FALSE,      help="include aerial transects"),
@@ -273,6 +273,10 @@ saveRDS(predictors_obs, file = file.path(outdir, paste0("predictors_observation_
                                                           name_suffix,
                                                           Sys.Date(), ".rds")))
 
+#exclude_grid is an index (1:82) that needs to be translated into the actual index of the cell
+grid_cell_nrs <- unique(predictors_obs$grid_id)
+grid_cell_nr <- grid_cell_nrs[exclude_grid]
+
 
 # now exclude the year that needs to be excluded
 if (!is.na(exclude_year)){
@@ -281,8 +285,8 @@ if (!is.na(exclude_year)){
 
 # or the grid_cell
 if (!is.na(exclude_grid)){
-  predictors_excluded_grid <- predictors_obs[predictors_obs$grid_id == exclude_grid, ]
-  predictors_obs <- predictors_obs[predictors_obs$grid_id != exclude_grid, ]
+  predictors_excluded_grid <- predictors_obs[predictors_obs$grid_id == grid_cell_nr, ]
+  predictors_obs <- predictors_obs[predictors_obs$grid_id != grid_cell_nr, ]
 }
 
 
