@@ -273,11 +273,6 @@ saveRDS(predictors_obs, file = file.path(outdir, paste0("predictors_observation_
                                                           name_suffix,
                                                           Sys.Date(), ".rds")))
 
-#exclude_grid is an index (1:82) that needs to be translated into the actual index of the cell
-#DONT WANT TO HAVE THIS; THIS SUCKS
-grid_cell_nrs <- unique(predictors_obs$grid_id)
-grid_cell_nr <- grid_cell_nrs[exclude_grid]
-
 
 # now exclude the year that needs to be excluded
 if (!is.na(exclude_year)){
@@ -286,8 +281,8 @@ if (!is.na(exclude_year)){
 
 # or the grid_cell
 if (!is.na(exclude_grid)){
-  predictors_excluded_grid <- predictors_obs[predictors_obs$grid_id == grid_cell_nr, ]
-  predictors_obs <- predictors_obs[predictors_obs$grid_id != grid_cell_nr, ]
+  predictors_excluded_grid <- predictors_obs[predictors_obs$grid_id == exclude_grid, ]
+  predictors_obs <- predictors_obs[predictors_obs$grid_id != exclude_grid, ]
 }
 
 # also we increase maxit for the two cases,
