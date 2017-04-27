@@ -289,7 +289,11 @@ if (!is.na(exclude_grid)){
   predictors_obs <- predictors_obs[predictors_obs$grid_id != grid_cell_nr, ]
 }
 
-
+# also we increase maxit for the two cases,
+# because then slightly less data
+if (is.na(exclude_grid) & is.na(exclude_year)){
+    nr_maxit <- 250}else{
+                   nr_maxit <- 500}
 if(is_verbose){ print(paste("3. start making all_model_terms", Sys.time()))}
 
  # #build models needed for analysis with a function
@@ -336,7 +340,7 @@ model_terms <- names(glm.nb(as.formula(paste("nr_nests~", paste(m_terms,
                                              "+ offset(offset_term)",
                                              sep = "")),
                               data = predictors_obs,
-                            control = glm.control(maxit = 250))$coefficients)
+                            control = glm.control(maxit = nr_maxit))$coefficients)
 
 
 # prediction estimates
@@ -363,7 +367,7 @@ model <- as.formula(
 
 res_full <- glm.nb(model, data = predictors_obs,
 
-                   control = glm.control(maxit = 250))
+                   control = glm.control(maxit = nr_maxit))
 
 
 # HERE I CAN NOW USE THE OTHER FUNCTION
@@ -407,7 +411,7 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
 	    paste(m_terms[all_model_terms[i, ] == 1], collapse = "+"),
             "+ offset(offset_term)"))
     res <- glm.nb(model, data = predictors_obs,
-                          control = glm.control(maxit = 250))
+                          control = glm.control(maxit = nr_maxit))
 
 
    # model
