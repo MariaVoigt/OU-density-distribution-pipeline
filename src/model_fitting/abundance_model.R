@@ -274,6 +274,7 @@ saveRDS(predictors_obs, file = file.path(outdir, paste0("predictors_observation_
                                                           Sys.Date(), ".rds")))
 
 #exclude_grid is an index (1:82) that needs to be translated into the actual index of the cell
+#DONT WANT TO HAVE THIS; THIS SUCKS
 grid_cell_nrs <- unique(predictors_obs$grid_id)
 grid_cell_nr <- grid_cell_nrs[exclude_grid]
 
@@ -293,7 +294,7 @@ if (!is.na(exclude_grid)){
 # because then slightly less data
 if (is.na(exclude_grid) & is.na(exclude_year)){
     nr_maxit <- 250}else{
-                   nr_maxit <- 250}
+                   nr_maxit <- 500}
 if(is_verbose){ print(paste("3. start making all_model_terms", Sys.time()))}
 
  # #build models needed for analysis with a function
