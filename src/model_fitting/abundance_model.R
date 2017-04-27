@@ -293,7 +293,7 @@ if (!is.na(exclude_grid)){
 # because then slightly less data
 if (is.na(exclude_grid) & is.na(exclude_year)){
     nr_maxit <- 250}else{
-                   nr_maxit <- 500}
+                   nr_maxit <- 250}
 if(is_verbose){ print(paste("3. start making all_model_terms", Sys.time()))}
 
  # #build models needed for analysis with a function
