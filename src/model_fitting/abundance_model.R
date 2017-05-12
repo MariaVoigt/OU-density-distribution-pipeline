@@ -128,12 +128,14 @@ PNB <- 0.88  #  proportion of nest builders from Spehar et al. 2010
 options("scipen" = 100, "digits" = 4)
 
 
-if (is.na(exclude_year) & is.na(exclude_grid)){
+if (is.na(exclude_year) & is.na(exclude_grid) & is.na(exclude_random)){
   name_suffix <- ""}
    if(!is.na(exclude_year)){
      name_suffix <- paste0("year_", exclude_year, "_")}
    if(!is.na(exclude_grid)){
      name_suffix <- paste0("gridcell_", exclude_grid, "_")}
+if(!is.na(exclude_random)){
+     name_suffix <- paste0("rand_", exclude_random, "_")}
 
 #---------------#
 #  Import data  #
