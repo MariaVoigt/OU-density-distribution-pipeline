@@ -492,9 +492,9 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
           result[ , "R2_cross"] <- summary(cross_lm_grid)$r.squared
         }
         if (!is.na(exclude_random)){
-          predictors_excluded_grid_pred <- predictors_excluded_random
-          predictors_excluded_grid_pred$offset_term <- 0
-          prediction_transect_excluded_grid <-  predict.glm(res,
+          predictors_excluded_random_pred <- predictors_excluded_random
+          predictors_excluded_random_pred$offset_term <- 0
+          prediction_transect_excluded_random <-  predict.glm(res,
                                                             newdata = predictors_excluded_random,
                                                             type = "response")
           cross_lm_random = lm(log(predictors_excluded_random$ou_dens+ 1) ~
