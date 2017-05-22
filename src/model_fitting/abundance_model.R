@@ -49,7 +49,7 @@ option_list <- list (
              help = "iteration of excluding the given percent randomly",
              metavar = "1"),
   make_option("--exclude-grid-random-percent",
-               dest = "exclude_grid_rand_percent",
+               dest = "exclude_grid_rand_perc",
                type = "integer",
 	       default = NA,
 	       help = "percemt cells to be excluded",
@@ -81,7 +81,7 @@ if (!is.na(options$exclude_year) && !(options$exclude_year %in% exclude_year_pos
 
 
 
-if (!is.na(options$exclude_grid_rand) & is.na(options$exclude_grid_rand_percent)){
+if (!is.na(options$exclude_grid_rand) & is.na(options$exclude_grid_rand_perc)){
 stop(paste("exclude-grid-random needs the percent cells that have to be excluded (exclude-grid-random-percent)"))}
 
 
