@@ -299,12 +299,14 @@ saveRDS(predictors_obs, file = file.path(outdir, paste0("predictors_observation_
 # now exclude the year that needs to be excluded
 if (!is.na(exclude_year)){
     predictors_excluded_year <- predictors_obs[predictors_obs$unscaled_year == exclude_year, ]
-    predictors_obs <- predictors_obs[predictors_obs$unscaled_year != exclude_year, ]}
+    predictors_obs <- predictors_obs[predictors_obs$unscaled_year != exclude_year, ]
+    nr_excluded <- nrow( predictors_excluded_year)}
 
 # or the grid_cell
 if (!is.na(exclude_grid)){
   predictors_excluded_grid <- predictors_obs[predictors_obs$grid_id == exclude_grid, ]
   predictors_obs <- predictors_obs[predictors_obs$grid_id != exclude_grid, ]
+  nr_excluded <- nrow(predictors_excluded_grid)
 }
 
 if (!is.na(exclude_grid_rand)){
@@ -312,9 +314,9 @@ if (!is.na(exclude_grid_rand)){
   ids_to_exclude <- sample(predictors_obs$bin_id,
                            size = nrow(predictors_obs)/100 * exclude_grid_rand_perc,
                            replace = FALSE)
-
   predictors_excluded_grid_rand <- predictors_obs[predictors_obs$bin_id %in% ids_to_exclude, ]
   predictors_obs <- predictors_obs[!predictors_obs$bin_id %in% ids_to_exclude, ]
+  nr_excluded <- nrow(predictors_excluded_grid_rand)
 }
 
 # also we increase maxit for the two cases,
@@ -361,6 +363,8 @@ m_terms <- c("1",
              "perc_muslim",
              "I(rain_dry^2)")
 
+
+save.image(file.path(outdir, "image_before_model.RData"))
 
 # save model_terms here
 model_terms <- names(glm.nb(as.formula(paste("nr_nests~", paste(m_terms,
@@ -418,12 +422,12 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
     # make results dataframe
     if (is.na(exclude_year) & is.na(exclude_grid) & is.na(exclude_grid_rand)){
       result <- as.data.frame(matrix(NA, ncol = 3 *
-                                       length(model_terms) + 5,
+                                       length(model_terms) + 6,
                                      nrow = 1))
        names(result) <- c("model", paste("coeff", model_terms, sep = "_"),
                                               paste("P",model_terms,sep = "_"),
                                               paste("SE", model_terms, sep = "_"),
-                                              "theta", "SE.theta", "AIC", "R2"
+                                              "theta", "SE.theta", "AIC", "R2", "nr_excluded"
                            )} else {
       result <- as.data.frame(matrix(NA, ncol = 3 * length(model_terms) + 6,
                                                           nrow = 1))
@@ -493,7 +497,8 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
                                log(prediction_transect_excluded_year + 1))
 
           result[ , "R2_cross"] <- summary(cross_lm_year)$r.squared
-        }
+         result[ , "nr_excluded"] <- nr_excluded
+         }
         if (!is.na(exclude_grid)){
           predictors_excluded_grid_pred <- predictors_excluded_grid
           predictors_excluded_grid_pred$offset_term <- 0
@@ -504,6 +509,7 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
                                log(prediction_transect_excluded_grid + 1))
 
           result[ , "R2_cross"] <- summary(cross_lm_grid)$r.squared
+	    result[ , "nr_excluded"] <- nr_excluded
         }
 
         if (!is.na(exclude_grid_rand)){
@@ -516,7 +522,9 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
                                log(prediction_transect_excluded_random + 1))
 
           result[ , "R2_cross"] <- summary(cross_lm_random)$r.squared
-        }
+          result[ , "nr_excluded"] <- nr_excluded
+  
+}
   return(result)
 }
 
