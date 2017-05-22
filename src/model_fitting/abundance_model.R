@@ -34,18 +34,18 @@ option_list <- list (
               dest = "ESW_aerial",
 	      type = "double",
 	      help = "aerial effective strip width"),
-  make_option("--exclude-year",    dest = "exclude_year", type = "integer",
-             default = NA, help = "year to exclude", metavar = "2015"),
- make_option("--exclude-grid",    dest = "exclude_grid", type = "integer",
-             default = NA, help = "index of grid-cells to exclude", metavar = "1"),
- make_option("--exclude-random",    dest = "exclude_random", type = "integer",
-             default = NA, help = "randomly excluding the percentage given",
-             metavar = "20"),
   make_option("--include-aerial",
               dest = "include_aerial", action="store_true",
               default=FALSE,      help="include aerial transects"),
   make_option("--stability",       action="store_true", default=FALSE,
               help="do stability analysis"),
+ make_option("--exclude-year",    dest = "exclude_year", type = "integer",
+             default = NA, help = "year to exclude", metavar = "2015"),
+ make_option("--exclude-grid",    dest = "exclude_grid", type = "integer",
+             default = NA, help = "index of grid-cells to exclude", metavar = "1"),
+ make_option("--exclude-grid-random",    dest = "exclude_grid_rand", type = "integer",
+             default = NA, help = "exclude the given percent randomly",
+             metavar = "10"),
   make_option(c("-q", "--quiet"), dest = "verbose_script",
               action = "store_false",
               default = TRUE,
@@ -98,8 +98,8 @@ if(is_verbose){print(paste("exclude year", exclude_year))}
 exclude_grid <- options$exclude_grid
 if(is_verbose){print(paste("exclude grid", exclude_grid))}
 
-exclude_random <- options$exclude_random
-if(is_verbose){print(paste("exclude random", exclude_random))}
+exclude_grid_rand <- options$exclude_grid_rand
+if(is_verbose){print(paste("exclude grid random", exclude_grid_rand))}
 
 #---------#
 # Globals #
@@ -291,19 +291,19 @@ if (!is.na(exclude_grid)){
   predictors_obs <- predictors_obs[predictors_obs$grid_id != exclude_grid, ]
 }
 
-if (!is.na(exclude_random)){
-  # choose X percent random grid_cells from all cells
-  # save them in predictors_excluded random and exclude them from the others
-  ids_to_exclude <- sample(predictors_obs$id,
-                           size = nrow(predictors_obs)/100 * exclude_random,
+if (!is.na(exclude_grid_rand)){
+ #bin_id --> randomly exclude percentage given in grid_rand
+  ids_to_exclude <- sample(predictors_obs$bin_id,
+                           size = nrow(predictors_obs)/100 * exclude_grid_rand,
                            replace = FALSE)
-  predictors_excluded_random <- predictors_obs[predictors_obs$id %in% ids_to_exclude, ]
-  predictors_obs <- predictors_obs[!predictors_obs$id %in% ids_to_exclude, ]
+
+  predictors_excluded_grid_rand <- predictors_obs[predictors_obs$bin_id %in% ids_to_exclude, ]
+  predictors_obs <- predictors_obs[!predictors_obs$bin_id %in% ids_to_exclude, ]
 }
 
 # also we increase maxit for the two cases,
 # because then slightly less data
-if (is.na(exclude_grid) & is.na(exclude_year)){
+if (is.na(exclude_grid) & is.na(exclude_year) & is.na(exclude_grid_rand)){
     nr_maxit <- 250}else{
                    nr_maxit <- 500}
 if(is_verbose){ print(paste("3. start making all_model_terms", Sys.time()))}
@@ -400,7 +400,7 @@ if(is_verbose){print(paste("8. Start running models", Sys.time()))}
 results_res <- foreach(i = 1:nrow(all_model_terms),
                        .combine = rbind) %dopar%{
     # make results dataframe
-    if (is.na(exclude_year) & is.na(exclude_grid) & is.na(exclude_random)){
+    if (is.na(exclude_year) & is.na(exclude_grid) & is.na(exclude_grid_rand)){
       result <- as.data.frame(matrix(NA, ncol = 3 *
                                        length(model_terms) + 5,
                                      nrow = 1))
@@ -489,13 +489,13 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
 
           result[ , "R2_cross"] <- summary(cross_lm_grid)$r.squared
         }
-        if (!is.na(exclude_random)){
-          predictors_excluded_grid_pred <- predictors_excluded_random
+        if (!is.na(exclude_grid_rand)){
+          predictors_excluded_grid_pred <- predictors_excluded_grid_rand
           predictors_excluded_grid_pred$offset_term <- 0
           prediction_transect_excluded_grid <-  predict.glm(res,
-                                                            newdata = predictors_excluded_random,
+                                                            newdata = predictors_excluded_grid_rand,
                                                             type = "response")
-          cross_lm_random = lm(log(predictors_excluded_random$ou_dens+ 1) ~
+          cross_lm_random = lm(log(predictors_excluded_grid_rand$ou_dens+ 1) ~
                                log(prediction_transect_excluded_random + 1))
 
           result[ , "R2_cross"] <- summary(cross_lm_random)$r.squared
