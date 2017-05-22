@@ -310,7 +310,7 @@ if (!is.na(exclude_grid)){
 if (!is.na(exclude_grid_rand)){
  #bin_id --> randomly exclude percentage given in grid_rand
   ids_to_exclude <- sample(predictors_obs$bin_id,
-                           size = nrow(predictors_obs)/100 * exclude_grid_rand,
+                           size = nrow(predictors_obs)/100 * exclude_grid_rand_perc,
                            replace = FALSE)
 
   predictors_excluded_grid_rand <- predictors_obs[predictors_obs$bin_id %in% ids_to_exclude, ]
