@@ -43,9 +43,17 @@ option_list <- list (
              default = NA, help = "year to exclude", metavar = "2015"),
  make_option("--exclude-grid",    dest = "exclude_grid", type = "integer",
              default = NA, help = "index of grid-cells to exclude", metavar = "1"),
- make_option("--exclude-grid-random",    dest = "exclude_grid_rand", type = "integer",
-             default = NA, help = "exclude the given percent randomly",
-             metavar = "10"),
+ make_option("--exclude-grid-random",    dest = "exclude_grid_rand",
+             type = "integer",
+             default = NA,
+             help = "iteration of excluding the given percent randomly",
+             metavar = "1"),
+  make_option("--exclude-grid-random-percent",
+               dest = "exclude_grid_rand_percent",
+               type = "integer",
+	       default = NA,
+	       help = "percemt cells to be excluded",
+	       metavar = "10"),			      
   make_option(c("-q", "--quiet"), dest = "verbose_script",
               action = "store_false",
               default = TRUE,
@@ -70,6 +78,12 @@ exclude_year_possibilities <- c(1999:2015)
 if (!is.na(options$exclude_year) && !(options$exclude_year %in% exclude_year_possibilities)) {
   stop(paste("exclude year must be between", min(exclude_year_possibilities), "and", max(exclude_year_possibilities)))
 }
+
+
+
+if (!is.na(options$exclude_grid_rand) & is.na(options$exclude_grid_rand_percent)){
+stop(paste("exclude-grid-random needs the percent cells that have to be excluded (exclude-grid-random-percent)"))}
+
 
 is_verbose <- options$verbose_script
 
