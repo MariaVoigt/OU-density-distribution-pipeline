@@ -52,7 +52,7 @@ option_list <- list (
                dest = "exclude_grid_rand_perc",
                type = "integer",
 	       default = NA,
-	       help = "percemt cells to be excluded",
+	       help = "percent cells to be excluded",
 	       metavar = "10"),			      
   make_option(c("-q", "--quiet"), dest = "verbose_script",
               action = "store_false",
@@ -114,6 +114,9 @@ if(is_verbose){print(paste("exclude grid", exclude_grid))}
 
 exclude_grid_rand <- options$exclude_grid_rand
 if(is_verbose){print(paste("exclude grid random", exclude_grid_rand))}
+
+exclude_grid_rand_perc <- options$exclude_grid_rand_perc
+if(is_verbose){print(paste("exclude_grid_rand_perc", exclude_grid_rand_perc))}       
 
 #---------#
 # Globals #
@@ -364,7 +367,7 @@ m_terms <- c("1",
              "I(rain_dry^2)")
 
 
-save.image(file.path(outdir, "image_before_model.RData"))
+save.image(file.path(outdir, paste0("image_before_model_", exclude_grid_rand,  ".RData")))
 
 # save model_terms here
 model_terms <- names(glm.nb(as.formula(paste("nr_nests~", paste(m_terms,
@@ -513,13 +516,13 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
         }
 
         if (!is.na(exclude_grid_rand)){
-          predictors_excluded_grid_pred <- predictors_excluded_grid_rand
-          predictors_excluded_grid_pred$offset_term <- 0
-          prediction_transect_excluded_grid <-  predict.glm(res,
+          predictors_excluded_grid_rand_pred <- predictors_excluded_grid_rand
+          predictors_excluded_grid_rand_pred$offset_term <- 0
+          prediction_transect_excluded_grid_rand<-  predict.glm(res,
                                                             newdata = predictors_excluded_grid_rand,
                                                             type = "response")
           cross_lm_random = lm(log(predictors_excluded_grid_rand$ou_dens+ 1) ~
-                               log(prediction_transect_excluded_random + 1))
+                               log(prediction_transect_excluded_grid_rand+ 1))
 
           result[ , "R2_cross"] <- summary(cross_lm_random)$r.squared
           result[ , "nr_excluded"] <- nr_excluded
