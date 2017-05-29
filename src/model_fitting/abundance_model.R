@@ -196,12 +196,34 @@ predictors[predictors$predictor == "palm_distance", "value"] <- log(
 # STARTING THE SCALING
 # SCALE PREDICTORS
 # these are the predictors that will be used in the model
-predictor_names_for_scaling <- c( "dem", "slope", "temp_mean", "rain_dry", "rain_var",
-                                  "ou_killings", "ou_killing_prediction", "human_pop_dens",
-                                  "perc_muslim", "peatswamp", "lowland_forest", "lower_montane_forest" ,
-                                  "road_dens", "distance_PA", "fire_dens", "deforestation_hansen",
-                                  "deforestation_gaveau", "plantation_distance", "pulp_distance", "palm_distance",
-                                  "dom_T_OC", "dom_T_PH")
+predictor_names_for_scaling <- c( "dem",
+                                 "slope",
+                                 "temp_mean",
+                                 "rain_dry",
+                                 "rain_var",
+                                 "ou_killings",
+                                 "ou_killing_prediction",
+                                 "human_pop_dens",
+                                 "perc_muslim",
+                                 "peatswamp",
+                                 "lowland_forest",
+                                 "lower_montane_forest" ,
+                                 "road_dens",
+                                 "distance_PA",
+                                 "fire_dens",
+                                 "deforestation_hansen",
+                                 "deforestation_gaveau",
+                                 "plantation_distance",
+                                 "pulp_distance",
+                                 "palm_distance",
+                                 "plantation_age",
+                                 "plantation_cover",
+                                 "IOPP_age",
+                                 "IOPP_cover",
+                                 "ITP_age",
+                                 "ITP_cover",
+                                 "dom_T_OC",
+                                 "dom_T_PH")
 
 # additional predictors that have to be scaled: year and x- and y-center
 predictor_names_add <- c("year", "x_center", "y_center")
@@ -418,7 +440,7 @@ write.csv(dfbeta_frame, file.path(outdir,
 
 # #run models
 if(is_verbose){print(paste("8. Start running models", Sys.time()))}
-
+save.image(file.path(outdir, "image_before_model_fitting.RData"))
 
 results_res <- foreach(i = 1:nrow(all_model_terms),
                        .combine = rbind) %dopar%{
