@@ -440,7 +440,6 @@ write.csv(dfbeta_frame, file.path(outdir,
 
 # #run models
 if(is_verbose){print(paste("8. Start running models", Sys.time()))}
-save.image(file.path(outdir, "image_before_model_fitting.RData"))
 
 results_res <- foreach(i = 1:nrow(all_model_terms),
                        .combine = rbind) %dopar%{
