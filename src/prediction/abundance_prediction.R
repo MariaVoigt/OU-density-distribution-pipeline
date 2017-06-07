@@ -44,6 +44,11 @@ option_list <- list (
               type = "integer",
               help = "year of the survey years (1994:2015) to predict abundance to",
               metavar = "2015"),
+  make_option("--focal-change-predictor",
+              dest = "focal_change_predictor",
+              type = "character",
+              help = "predictor that is allowed to vary in stability analysis",
+              metavar = "year"),
   make_option(c("-q", "--quiet"), dest = "verbose_script",
               action = "store_false",
               default = TRUE,
@@ -160,6 +165,8 @@ predictor_names_coeffs <- predictor_names_coeffs[predictor_names_coeffs != "(Int
 # don't include interaction or quadratic term
 predictor_names <- predictor_names_coeffs[!grepl("I(*)", predictor_names_coeffs)]
 
+
+
 #----------------------------#
 # Load and prepare estimates #
 #----------------------------#
@@ -213,15 +220,26 @@ predictors_grid <- scale.predictors.grid(predictor_names_for_scaling,
 saveRDS(predictors_grid, file.path(outdir, paste0("predictors_grid_scaled_", name_suffix,
                                  year_to_predict, "_", Sys.Date(), ".rds")))
 
-
-
-# predictors used in model
-predictor_names <- c("year", "temp_mean", "rain_var", "rain_dry", "dom_T_OC",
-                     "peatswamp", "lowland_forest",
-                     "lower_montane_forest", "deforestation_hansen",
-                     "human_pop_dens", "ou_killing_prediction",
-                     "perc_muslim" )
-
+#-------------------------------------#
+# Prepare analysis of decline drivers #
+#-------------------------------------#
+if(!is.na(focal_change_predictor)){
+  # load 1999 value to add the values, but use the scaled table
+  predictors_grid_1999_path <- path.to.current(indir,
+                                         paste0("predictors_grid_scaled_",
+                                                name_suffix, 1999),
+                                         "rds")
+  predictors_grid_1999 <- readRDS(  predictors_grid_1999_path)
+  change_predictors <- c("year", "peatswamp",
+                         "lowland_forest",
+                         "lower_montane_forest",
+                         "deforestation_hansen")
+  change_predictors <- change_predictors[!change_predictors %in% focal_change_predictor]
+  for (change_predictor in change_predictors){
+    # go through all predictors and set their value to the 1999 value
+    predictors_grid[ , change_predictor] <- predictors_grid_1999[ , change_predictor]
+  }
+}
 
 #--------------------------#
 # PREDICTION FOR each year #
