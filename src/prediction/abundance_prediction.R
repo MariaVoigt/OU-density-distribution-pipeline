@@ -106,6 +106,9 @@ print(paste("for year to predict" , year_to_predict))
 exclude_year <- as.numeric(options$exclude_year)
 if(is_verbose){print(paste("exclude year", exclude_year))}
 
+focal_change_predictor <- options$focal_change_predictor
+if(is_verbose){print(paste("focal_change_predictor", focal_change_predictor))} 
+
 if(is_verbose){print(paste(Sys.time(), "0. start run"))}
 #------------------------#
 # command line arguments #
@@ -116,10 +119,12 @@ indir_fun <- "~/orangutan_density_distribution/src/functions/"
 crs_aea <- "+proj=aea +lat_1=7 +lat_2=-32 +lat_0=-15 +lon_0=125 +x_0=0
   +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs" # final projection
 
-if (is.na(exclude_year)){
-  name_suffix <- ""} else {
+if (!is.na(exclude_year)){
     name_suffix <- paste0(exclude_year, "_")
-  }
+}else{
+    if (!is.na(focal_change_predictor)){
+    name_suffix <- paste0(focal_change_predictor, "_") }else{
+    name_suffix <- ""}}
 
 #----------------#
 # Load functions #
@@ -181,10 +186,15 @@ if(is_verbose){print(paste("this is predictors path", predictors_path))}
 predictors <- readRDS(predictors_path)
 
 # import here the already z-transformed or not
+
+if (!is.na(exclude_year)){
 predictors_obs_path <- path.to.current(indir,
                                        paste0("predictors_observation_scaled_",
                                               name_suffix),
-                                              "rds")
+                                       "rds")} else{
+predictors_obs_path <- path.to.current(indir, "predictors_observation_scaled_",
+				       "rds")}
+
 if(is_verbose){print(paste("this is predictors-obs path", predictors_obs_path))}
 
 predictors_obs <- readRDS(predictors_obs_path)
@@ -227,7 +237,7 @@ if(!is.na(focal_change_predictor)){
   # load 1999 value to add the values, but use the scaled table
   predictors_grid_1999_path <- path.to.current(indir,
                                          paste0("predictors_grid_scaled_",
-                                                name_suffix, 1999),
+                                              1999),
                                          "rds")
   predictors_grid_1999 <- readRDS(  predictors_grid_1999_path)
   change_predictors <- c("year", "peatswamp",
@@ -297,11 +307,6 @@ print(paste(Sys.time(),
             "nr of values over 10 ", year_to_predict,
             sum(pred_per_cell$abundance_pred > 10)))
 
-
-if (is.na(exclude_year)){
-  name_suffix <- ""} else {
-    name_suffix <- paste0(exclude_year, "_")
-  }
 
 
 saveRDS(pred_per_cell,
