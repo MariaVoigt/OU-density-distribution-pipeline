@@ -338,8 +338,8 @@ if (!is.na(exclude_rand)){
   ids_to_exclude <- sample(predictors_obs$id,
                            size = nrow(predictors_obs)/100 * exclude_rand_perc,
                            replace = FALSE)
-  predictors_excluded <- predictors_obs[predictors_obs$bin_id %in% ids_to_exclude, ]
-  predictors_obs <- predictors_obs[!predictors_obs$bin_id %in% ids_to_exclude, ]
+  predictors_excluded <- predictors_obs[predictors_obs$id %in% ids_to_exclude, ]
+  predictors_obs <- predictors_obs[!predictors_obs$id %in% ids_to_exclude, ]
   nr_excluded <- nrow(predictors_excluded)
 }
 
@@ -516,7 +516,7 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
            predictors_excluded_pred <- predictors_excluded
           predictors_excluded_pred$offset_term <- 0
           prediction_transect_excluded <-  predict.glm(res,
-                                                            newdata = predictors_excluded,
+                                                            newdata = predictors_excluded_pred,
                                                             type = "response")
           cross_lm = lm(log(predictors_excluded$ou_dens+ 1) ~
                                log(prediction_transect_excluded + 1))
