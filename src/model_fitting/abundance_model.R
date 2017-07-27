@@ -388,8 +388,6 @@ m_terms <- c("1",
              "I(rain_dry^2)")
 
 
-save.image(file.path(outdir, paste0("image_before_model_", exclude_rand,  ".RData")))
-
 # save model_terms here
 model_terms <- names(glm.nb(as.formula(paste("nr_nests~", paste(m_terms,
                                                                 collapse = "+"),
@@ -573,8 +571,8 @@ write.csv(summary_mean_coefficients,
                                   Sys.Date(), ".csv")))
 
 
-save.image(file.path(outdir, paste0("abundance_model_fitting_",
-                                    name_suffix,
-                                    Sys.Date(), ".RData")))
+#save.image(file.path(outdir, paste0("abundance_model_fitting_",
+#                                    name_suffix,
+# Sys.Date(), ".RData")))
 
 print(paste("Finished model_fitting script, at", Sys.time()))
