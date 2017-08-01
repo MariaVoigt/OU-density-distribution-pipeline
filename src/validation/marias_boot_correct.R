@@ -89,7 +89,7 @@ options("scipen" = 100, "digits" = 4)
 
 # load("/homes/mv39zilo/work/Borneo/outreach/Correspondance/November_2016/Roger/images/abundance_model_fitting_2016-12-02.RData")
 
-#indir <- "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/abundMod/testing_ae_and_absence/pipeline_results/ppln_ae75m_50-2017-02-28T18-00-52"
+#indir <- "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/abundMod/testing_ae_and_absence/pipeline_results/absence_density/ppln_ae75m_50-2017-02-28T18-00-52"
 # include abundMod_results
 #oreductirs_obs und m_terms
 abundMod_results_path <- path.to.current(indir, "abundMod_results", "rds")
@@ -104,14 +104,13 @@ m_terms_path <- path.to.current(indir, "m_terms", "rds")
 if(is_verbose){print(paste("m_terms_path", m_terms_path))}
 m_terms <- readRDS(m_terms_path)
 
-
 ests=apply(abundMod_results [, grepl(x=colnames(abundMod_results ), pattern="coeff")], 2, function(x){
 	x[is.na(x)]=0
 	sum(x*abundMod_results$w_aic)
 })
 SEs=apply(abundMod_results [, grepl(x=colnames(abundMod_results ), pattern="SE")], 2, function(x){
 	x[is.na(x)]=0
-	sum(x*abundMod_results$w_aic)
+	sum(x*abundMod_results$w_ai)c
 })
 SEs=SEs[-length(SEs)]
 names(ests)=gsub(x=names(ests), pattern="coeff_", replacement="", fixed=T)
