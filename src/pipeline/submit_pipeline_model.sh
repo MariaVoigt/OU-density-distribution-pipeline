@@ -6,9 +6,9 @@
 
 
 # here somehow write the prefix depending on what we are testing
-JOB_NAME_PREFIX=ppln_ae75m_50_ac
+JOB_NAME_PREFIX=ppln_ae150m_50
 
-INPUT_PATH='/work/voigtma/ppln_ae75m_50_fixing-2017-02-28T18-00-52'
+INPUT_PATH='/data/idiv_kuehl/maria_data/pipeline'
 NAME=$JOB_NAME_PREFIX-$(date +%FT%H-%M-%S)
 
 # FIX THIS
@@ -27,7 +27,7 @@ QSUB="qsub -terse -v OUTPUT_PATH=$OUTPUT_PATH -o /work/$USER/$NAME.log -j y"
     -N ${JOB_NAME_PREFIX}_fitting \
     $HOME/orangutan_density_distribution/src/model_fitting/submit_abundance_model_ac_term.sh \
     -i $INPUT_PATH \
-    --ESW-aerial 0.075 \
+    --ESW-aerial 0.15 \
     --include-aerial \
     --stability)
 
@@ -38,5 +38,6 @@ QSUB="qsub -terse -v OUTPUT_PATH=$OUTPUT_PATH -o /work/$USER/$NAME.log -j y"
     -hold_jid $MODEL_JOB_ID_FITTING \
     -t 1999:2015 \
     $HOME/orangutan_density_distribution/src/prediction/submit_abundance_pred.sh \
-    -i $INPUT_PATH )
+    -i $INPUT_PATH \
+    --focal-change-predictor NA)
 

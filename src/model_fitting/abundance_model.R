@@ -338,8 +338,8 @@ if (!is.na(exclude_rand)){
   ids_to_exclude <- sample(predictors_obs$id,
                            size = nrow(predictors_obs)/100 * exclude_rand_perc,
                            replace = FALSE)
-  predictors_excluded <- predictors_obs[predictors_obs$bin_id %in% ids_to_exclude, ]
-  predictors_obs <- predictors_obs[!predictors_obs$bin_id %in% ids_to_exclude, ]
+  predictors_excluded <- predictors_obs[predictors_obs$id %in% ids_to_exclude, ]
+  predictors_obs <- predictors_obs[!predictors_obs$id %in% ids_to_exclude, ]
   nr_excluded <- nrow(predictors_excluded)
 }
 
@@ -387,8 +387,6 @@ m_terms <- c("1",
              "perc_muslim",
              "I(rain_dry^2)")
 
-
-save.image(file.path(outdir, paste0("image_before_model_", exclude_rand,  ".RData")))
 
 # save model_terms here
 model_terms <- names(glm.nb(as.formula(paste("nr_nests~", paste(m_terms,
@@ -516,7 +514,7 @@ results_res <- foreach(i = 1:nrow(all_model_terms),
            predictors_excluded_pred <- predictors_excluded
           predictors_excluded_pred$offset_term <- 0
           prediction_transect_excluded <-  predict.glm(res,
-                                                            newdata = predictors_excluded,
+                                                            newdata = predictors_excluded_pred,
                                                             type = "response")
           cross_lm = lm(log(predictors_excluded$ou_dens+ 1) ~
                                log(prediction_transect_excluded + 1))
@@ -573,8 +571,8 @@ write.csv(summary_mean_coefficients,
                                   Sys.Date(), ".csv")))
 
 
-save.image(file.path(outdir, paste0("abundance_model_fitting_",
-                                    name_suffix,
-                                    Sys.Date(), ".RData")))
+#save.image(file.path(outdir, paste0("abundance_model_fitting_",
+#                                    name_suffix,
+# Sys.Date(), ".RData")))
 
 print(paste("Finished model_fitting script, at", Sys.time()))
