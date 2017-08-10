@@ -3,6 +3,16 @@
 Spyder Editor
 
 # script to prepare the grid with the resource use information
+# in the output file we will have a
+# a 1 at the first position if pixel has to be discarded
+# a 2 at the first position if the pixel is considered
+# a 1 at the second position for IDN
+# a 2 at the second position for MYS 
+# a 0 - 5 at the 3rd position depending on the resource use category
+# the grid_id from the 4rth to the 10th position (6 positions)
+# 
+# we will now clip with populations and then also do this in the 
+# other resource use table, let's see how this looks like
 """
 
 
@@ -102,17 +112,23 @@ cover_change = np.where(((crisp_2000 > 2 ) & (crisp_2000 < 7)) & ((crisp_2010 > 
 # in rid
 grid = np.where((plantations == 1) & 
                  (grid == 1), 1 , grid)
-grid = np.where((gaveau_deforested  == 1)& 
+grid = np.where((plantations == 0) & 
+                 (gaveau_deforested  == 1)&
                  (grid == 1), 2 , grid)
-grid = np.where((cover_change == 1)& 
+grid = np.where((plantations == 0) & 
+                (gaveau_deforested  == 0)&
+                 (cover_change == 1)& 
                  (grid == 1), 3 , grid)
-grid = np.where((gaveau_logged == 1) & 
+grid = np.where((plantations == 0) & 
+                 (gaveau_deforested == 0)&
+                 (cover_change == 0)& 
+                 (gaveau_logged == 1) & 
                  (grid == 1), 4 , grid)
-grid = np.where((grid == 1) &
-                (plantations == 0) &
+grid = np.where((plantations == 0) &
                 (gaveau_deforested  == 0) & 
                 (cover_change == 0) &
-                (gaveau_logged == 0), 5 , grid)
+                (gaveau_logged == 0) & 
+                (grid == 1), 5 , grid)
                 
 np.unique(grid)
 
