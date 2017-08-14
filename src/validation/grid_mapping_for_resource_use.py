@@ -76,41 +76,15 @@ absence = mp.tiff.read_tif(absence_path, 1)
 grid = mp.tiff.read_tif("/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/future/grid_with_id_repro_res.tif", 1)
 np.unique(grid)
 
+resource_use = mp.tiff.read_tif("/homes/mv39zilo/work/Borneo/data/resource_use/resource_use_grid.tif", 1)
+np.unique(resource_use)  
 
 
-
-
-
-gaveau_defor_path = "/homes/mv39zilo/work/Borneo/data/predictors/raw_data/Remaining_forest_in_2015_and_deforestation_1973-2015/REGIONBorneo_FCDefDeg_1973to2015_CIFOR_repro_res.tif"
-gaveau_defor_raw = mp.tiff.read_tif(gaveau_defor_path, 1)
-gaveau_deforested = np.where((gaveau_defor_raw > 6 ) & 
-                              (gaveau_defor_raw < 10), 1, 0)
-gaveau_logged = np.where(gaveau_defor_raw == 2, 1, 0)
-
-#plantation                       
-plantation_path = "/homes/mv39zilo/work/Borneo/data/predictors/raw_data/Land_cover_trajectory_before_oil-palm_and_pulpwood_establishment/raster_plantation.tif"
-plantations = mp.tiff.read_tif(plantation_path, 1)                              
-
-#non habitat
-crisp_2000_path = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/resource_use//crisp_2000_repro_res.tif"
-crisp_2000 = mp.tiff.read_tif(crisp_2000_path, 1)
-crisp_2010_path = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/resource_use/crisp_2010_repro_res.tif"
-crisp_2010 = mp.tiff.read_tif(crisp_2010_path, 1)
-crisp_2015_path = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/resource_use/crisp_2015_repro_res.tif"
-crisp_2015 = mp.tiff.read_tif(crisp_2015_path, 1)
-
-cover_change = np.where(((crisp_2000 > 2 ) & (crisp_2000 < 7)) & ((crisp_2010 > 6 ) |(crisp_2010 == 1 ) | (crisp_2015 > 6) | (crisp_2015 == 1 ) ), 1, 0)
-
-
-
-
-# pixel is out
-grid = np.where(absence == 1, 1000000000 + grid, grid)
-# pixel is in
-grid = np.where(absence == 0, 2000000000 + grid, grid)
-
-
-
+# pixel is out / out
+resource_grid_1 = np.where(absence == 1, 1000000000, 2000000000)
+resource_grid_2 = np.where(resource_use > 0, (resource_grid_1 + resource_use * 10000000), 
+                resource_grid_1)
+np.unique(resource_grid_2 )
  # now assigning number for each resource use
 # 0 - absence       
 # 1 - plantation
@@ -119,31 +93,16 @@ grid = np.where(absence == 0, 2000000000 + grid, grid)
 # 4 - logging
 # 5 - other 
 
-
-# we can save some computing time by only considering
-# the grid and not everything, because abundance will only be
-# in rid
-# problem with overlap, need to do like with the table, otherwise I add up
-
-grid = np.where((plantations == 1), 10000000 + grid , grid)
-grid = np.where((gaveau_deforested  == 1), 20000000 + grid , grid)
-grid = np.where((cover_change == 1), 30000000 + grid , grid)
-grid = np.where((gaveau_logged == 1), 40000000 + grid , grid)
-grid = np.where((plantations == 0) &
-                (gaveau_deforested  == 0) & 
-                (cover_change == 0) &
-                (gaveau_logged == 0), 50000000 + grid , grid)
+resource_grid_3 = np.where(grid > 0, (resource_grid_2 + grid), 
+                resource_grid_2 )
+np.unique(resource_grid_3)
 
 
-
-                
-np.unique(grid)
-
-mp.tiff.write_tif(file_with_srid = grid_layer_path, 
-                   full_output_name = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/resource_use/resource_use_grid.tif",
-                   data =  grid, 
-                   dtype = 4)  
-                   
+mp.tiff.write_tif(file_with_srid = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/future/grid_with_id_repro_res.tif", 
+                   full_output_name = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/resource_use/resource_grid_3.tif",
+                   data = resource_grid_3, 
+                   dtype = 5)
+     
 # use this in R script "prepare_boot_grid.R"
                    
 
