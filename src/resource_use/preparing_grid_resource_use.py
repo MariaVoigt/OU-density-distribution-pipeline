@@ -91,13 +91,13 @@ np.unique(grid)
 # 0 - absence       
 # 1 - plantation
 # 2 - deforestation
-# 3 - landcover change
-# 4 - logging
-# 5 - primary forest < 750m
-# 6 - primary forest > 750
-# 7 - regrowth
-# 8 - plantations before 2000
-# 9 - burnt
+# 3 - burnt
+# 4 - landcover change
+# 5 - logging
+# 6 - primary forest < 750m
+# 7 - primary forest > 750
+# 8 - regrowth
+# 9 - plantations before 2000
 # 10 - other 
 
 
@@ -148,72 +148,75 @@ grid = np.where((plantations == 1) &
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested  == 1)&
                  (grid == 1), 2 , grid)
+# 3 is burnt areas
+grid = np.where((plantations == 0) & 
+                 (gaveau_deforested == 0)&
+                 (burnt == 1) & 
+                 (grid == 1),3 , grid)                     
+                 
+# 4 cover change
 grid = np.where((plantations == 0) & 
                 (gaveau_deforested  == 0)&
+                 (burnt == 0) & 
                  (cover_change == 1)& 
-                 (grid == 1), 3 , grid)
+                 (grid == 1), 4 , grid)
+# 5 logged
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested == 0)&
+                 (burnt == 0) & 
                  (cover_change == 0)& 
                  (gaveau_logged == 1) & 
-                 (grid == 1), 4 , grid)
-# 5 primary forest
+                 (grid == 1), 5 , grid)
+# 6 primary forest
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested == 0)&
+                 (burnt == 0) & 
                  (cover_change == 0)& 
                  (gaveau_logged == 0) & 
                  (gaveau_primary_forest == 1) &
-                 (grid == 1), 5 , grid)   
+                 (grid == 1), 6 , grid)   
                  
 # add here primary forest at high altitudes
 # because everywhere where we have primary forest 
-# we no longer have a 1 in grid but a six we do it differently        
+# we no longer have a 1 in grid but a six we do it differently   
+# 7 primary montane
 grid  = np.where((grid == 5) & 
-                (dem > 750), 6, grid)    
+                (dem > 750), 7, grid)    
 
 
-# 7 regrowth
+# 8 regrowth
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested == 0)&
+                 (burnt == 0) & 
                  (cover_change == 0)& 
                  (gaveau_logged == 0) & 
                  (gaveau_primary_forest == 0) &
                  (gaveau_regrowth ==1) &
-                 (grid == 1), 7 , grid)  
+                 (grid == 1), 8 , grid)  
                  
-# 8 is old plantations
+# 9 is old plantations
             
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested == 0)&
+                 (burnt == 0) & 
                  (cover_change == 0)& 
                  (gaveau_logged == 0) & 
                  (gaveau_primary_forest == 0) &
                  (gaveau_regrowth == 0) &
                  (old_plantations == 1) & 
-                 (grid == 1), 8 , grid)              
+                 (grid == 1), 9 , grid)              
                  
-# 9 is burnt areas
-grid = np.where((plantations == 0) & 
-                 (gaveau_deforested == 0)&
-                 (cover_change == 0)& 
-                 (gaveau_logged == 0) & 
-                 (gaveau_primary_forest == 0) &
-                 (gaveau_regrowth == 0) &
-                 (old_plantations == 0) &
-                 (burnt == 1) & 
-                 (grid == 1), 9 , grid)             
                  
 
 # 10 is other
 grid = np.where((plantations == 0) & 
                (gaveau_deforested == 0)&
-                (cover_change == 0)& 
-                (gaveau_logged == 0) & 
-                 (gaveau_primary_forest == 0) &
-                 (gaveau_regrowth ==0) &
-                (old_plantations == 0) &
-                 (burnt == 0) & 
-                 (grid == 1), 10, grid) 
+               (burnt == 0) & 
+               (cover_change == 0)& 
+               (gaveau_logged == 0) & 
+               (gaveau_primary_forest == 0) &
+               (gaveau_regrowth ==0) &
+               (grid == 1), 10, grid) 
                  
 
 np.unique(grid)
