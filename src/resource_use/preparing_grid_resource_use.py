@@ -60,6 +60,15 @@ os.system("gdalwarp \
 )
 
 
+os.system("gdalwarp \
+-t_srs '+proj=aea +lat_1=7 +lat_2=-32 +lat_0=-15 +lon_0=125 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs' \
+-ot Float64 -r near \
+-te -1751798.359 1267454.241 -629798.359 2560454.241 \
+-ts 1122 1293 \
+-overwrite  \
+/homes/mv39zilo/work/Borneo/data/predictors/cleaned_data/cleaned_predictors/dem.tif \
+/homes/mv39zilo/work/Borneo/data/predictors/cleaned_data/cleaned_predictors/dem_repro_res.tif"
+)
 
 """
 
@@ -84,7 +93,12 @@ np.unique(grid)
 # 2 - deforestation
 # 3 - landcover change
 # 4 - logging
-# 5 - other 
+# 5 - primary forest < 750m
+# 6 - primary forest > 750
+# 7 - regrowth
+# 8 - plantations before 2000
+# 9 - burnt
+# 10 - other 
 
 
 gaveau_defor_path = "/homes/mv39zilo/work/Borneo/data/predictors/raw_data/Remaining_forest_in_2015_and_deforestation_1973-2015/REGIONBorneo_FCDefDeg_1973to2015_CIFOR_repro_res.tif"
@@ -92,6 +106,8 @@ gaveau_defor_raw = mp.tiff.read_tif(gaveau_defor_path, 1)
 gaveau_deforested = np.where((gaveau_defor_raw > 6 ) & 
                               (gaveau_defor_raw < 10), 1, 0)
 gaveau_logged = np.where(gaveau_defor_raw == 2, 1, 0)
+gaveau_primary_forest = np.where(gaveau_defor_raw == 1, 1, 0)
+gaveau_regrowth = np.where(gaveau_defor_raw == 4, 1, 0)
 
 #plantation                       
 plantation_path = "/homes/mv39zilo/work/Borneo/data/predictors/raw_data/Land_cover_trajectory_before_oil-palm_and_pulpwood_establishment/raster_plantation.tif"
@@ -106,6 +122,23 @@ crisp_2015_path = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/r
 crisp_2015 = mp.tiff.read_tif(crisp_2015_path, 1)
 
 cover_change = np.where(((crisp_2000 > 2 ) & (crisp_2000 < 7)) & ((crisp_2010 > 6 ) |(crisp_2010 == 1 ) | (crisp_2015 > 6) | (crisp_2015 == 1 ) ), 1, 0)
+
+# old plantations
+old_plantations_path = "/homes/mv39zilo/work/Borneo/data/predictors/raw_data/Land_cover_trajectory_before_oil-palm_and_pulpwood_establishment/raster_plantation_old_repro_res.tif"
+old_plantations = mp.tiff.read_tif(old_plantations_path, 1)
+
+# burnt areas
+burnt_areas_path = "/homes/mv39zilo/work/Borneo/data/predictors/raw_data/Scrub_ie_forest_destroyed_by_fire/REGIONBorneo_DegradedForestByDroughtAndFire_2015_CIFOR_repro_res.tif"
+burnt = mp.tiff.read_tif(burnt_areas_path, 1)
+np.unique(burnt)
+
+dem_path = "/homes/mv39zilo/work/Borneo/data/predictors/cleaned_data/cleaned_predictors/dem_repro_res.tif"
+dem = mp.tiff.read_tif(dem_path, 1)
+
+
+
+# elevation
+# --> how much of primary forest in high elevation
 
 # we can save some computing time by only considering
 # the grid and not everything, because abundance will only be
@@ -124,12 +157,65 @@ grid = np.where((plantations == 0) &
                  (cover_change == 0)& 
                  (gaveau_logged == 1) & 
                  (grid == 1), 4 , grid)
-grid = np.where((plantations == 0) &
-                (gaveau_deforested  == 0) & 
-                (cover_change == 0) &
+# 5 primary forest
+grid = np.where((plantations == 0) & 
+                 (gaveau_deforested == 0)&
+                 (cover_change == 0)& 
+                 (gaveau_logged == 0) & 
+                 (gaveau_primary_forest == 1) &
+                 (grid == 1), 5 , grid)   
+                 
+# add here primary forest at high altitudes
+# because everywhere where we have primary forest 
+# we no longer have a 1 in grid but a six we do it differently        
+grid  = np.where((grid == 5) & 
+                (dem > 750), 6, grid)    
+
+
+# 7 regrowth
+grid = np.where((plantations == 0) & 
+                 (gaveau_deforested == 0)&
+                 (cover_change == 0)& 
+                 (gaveau_logged == 0) & 
+                 (gaveau_primary_forest == 0) &
+                 (gaveau_regrowth ==1) &
+                 (grid == 1), 7 , grid)  
+                 
+# 8 is old plantations
+            
+grid = np.where((plantations == 0) & 
+                 (gaveau_deforested == 0)&
+                 (cover_change == 0)& 
+                 (gaveau_logged == 0) & 
+                 (gaveau_primary_forest == 0) &
+                 (gaveau_regrowth == 0) &
+                 (old_plantations == 1) & 
+                 (grid == 1), 8 , grid)              
+                 
+# 9 is burnt areas
+grid = np.where((plantations == 0) & 
+                 (gaveau_deforested == 0)&
+                 (cover_change == 0)& 
+                 (gaveau_logged == 0) & 
+                 (gaveau_primary_forest == 0) &
+                 (gaveau_regrowth == 0) &
+                 (old_plantations == 0) &
+                 (burnt == 1) & 
+                 (grid == 1), 9 , grid)             
+                 
+
+# 10 is other
+grid = np.where((plantations == 0) & 
+               (gaveau_deforested == 0)&
+                (cover_change == 0)& 
                 (gaveau_logged == 0) & 
-                (grid == 1), 5 , grid)
-                
+                 (gaveau_primary_forest == 0) &
+                 (gaveau_regrowth ==0) &
+                (old_plantations == 0) &
+                 (burnt == 0) & 
+                 (grid == 1), 10, grid) 
+                 
+
 np.unique(grid)
 
 mp.tiff.write_tif(file_with_srid = grid_layer_path, 
