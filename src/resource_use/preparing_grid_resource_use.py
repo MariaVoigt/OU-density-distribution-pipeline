@@ -91,13 +91,12 @@ np.unique(grid)
 # 0 - absence       
 # 1 - plantation
 # 2 - deforestation
-# 3 - landcover change
-# 4 - logging
-# 5 - primary forest < 750m
-# 6 - primary forest > 750
-# 7 - regrowth
-# 8 - plantations before 2000
-# 9 - other 
+# 3 - logging
+# 4 - primary forest < 750m
+# 5 - primary forest > 750
+# 6 - regrowth
+# 7 - plantations before 2000
+# 8 - other 
 
 
 gaveau_defor_path = "/homes/mv39zilo/work/Borneo/data/predictors/raw_data/Remaining_forest_in_2015_and_deforestation_1973-2015/REGIONBorneo_FCDefDeg_1973to2015_CIFOR_repro_res.tif"
@@ -111,16 +110,6 @@ gaveau_regrowth = np.where(gaveau_defor_raw == 4, 1, 0)
 #plantation                       
 plantation_path = "/homes/mv39zilo/work/Borneo/data/predictors/raw_data/Land_cover_trajectory_before_oil-palm_and_pulpwood_establishment/raster_plantation.tif"
 plantations = mp.tiff.read_tif(plantation_path, 1)                              
-
-#non habitat
-crisp_2000_path = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/resource_use//crisp_2000_repro_res.tif"
-crisp_2000 = mp.tiff.read_tif(crisp_2000_path, 1)
-crisp_2010_path = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/resource_use/crisp_2010_repro_res.tif"
-crisp_2010 = mp.tiff.read_tif(crisp_2010_path, 1)
-crisp_2015_path = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/resource_use/crisp_2015_repro_res.tif"
-crisp_2015 = mp.tiff.read_tif(crisp_2015_path, 1)
-
-cover_change = np.where(((crisp_2000 > 2 ) & (crisp_2000 < 7)) & ((crisp_2010 > 6 ) |(crisp_2010 == 1 ) | (crisp_2015 > 6) | (crisp_2015 == 1 ) ), 1, 0)
 
 # old plantations
 old_plantations_path = "/homes/mv39zilo/work/Borneo/data/predictors/raw_data/Land_cover_trajectory_before_oil-palm_and_pulpwood_establishment/raster_plantation_old_repro_res.tif"
@@ -148,43 +137,38 @@ grid = np.where((plantations == 0) &
                  (gaveau_deforested  == 1)&
                  (grid == 1), 2 , grid)               
                  
-# 3 cover change
-grid = np.where((plantations == 0) & 
-                (gaveau_deforested  == 0)&
-                 (cover_change == 1)& 
-                 (grid == 1), 3 , grid)
-# 4 logged
+# 3 logged
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested == 0)&
                  (cover_change == 0)& 
                  (gaveau_logged == 1) & 
-                 (grid == 1), 4 , grid)
-# 5 primary forest
+                 (grid == 1), 3 , grid)
+# 4 primary forest
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested == 0)&
                  (cover_change == 0)& 
                  (gaveau_logged == 0) & 
                  (gaveau_primary_forest == 1) &
-                 (grid == 1), 5 , grid)   
+                 (grid == 1), 4 , grid)   
                  
 # add here primary forest at high altitudes
 # because everywhere where we have primary forest 
 # we no longer have a 1 in grid but a six we do it differently   
-# 6 primary montane
-grid  = np.where((grid == 5) & 
-                (dem > 750), 6, grid)    
+# 5 primary montane
+grid  = np.where((grid == 4) & 
+                (dem > 750), 5, grid)    
 
 
-# 7 regrowth
+# 6 regrowth
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested == 0)&
                  (cover_change == 0)& 
                  (gaveau_logged == 0) & 
                  (gaveau_primary_forest == 0) &
                  (gaveau_regrowth ==1) &
-                 (grid == 1), 7 , grid)  
+                 (grid == 1), 6 , grid)  
                  
-# 8 is old plantations
+# 7 is old plantations
             
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested == 0)&
@@ -193,18 +177,18 @@ grid = np.where((plantations == 0) &
                  (gaveau_primary_forest == 0) &
                  (gaveau_regrowth == 0) &
                  (old_plantations == 1) & 
-                 (grid == 1), 8 , grid)              
+                 (grid == 1), 7 , grid)              
                  
                  
 
-# 9 is other
+# 8 is other
 grid = np.where((plantations == 0) & 
                (gaveau_deforested == 0)&
                (cover_change == 0)& 
                (gaveau_logged == 0) & 
                (gaveau_primary_forest == 0) &
                (gaveau_regrowth ==0) &
-               (grid == 1), 9, grid) 
+               (grid == 1), 8, grid) 
                  
 
 np.unique(grid)
@@ -215,12 +199,21 @@ mp.tiff.write_tif(file_with_srid = grid_layer_path,
                    dtype = 0)  
        
 
-# grid map with three categories
+# grid map with four categories
+# 0 - absence                 - 0
+# 1 - plantation              - 1
+# 2 - deforestation           - 1
+# 3 - logging                 - 1
+# 4 - primary forest < 750m   - 2
+# 5 - primary forest > 750    - 2
+# 6 - regrowth                - 2
+# 7 - plantations before 2000 - 3
+# 8 - other                   - 3
 
-grid_map = np.where((grid < 5) & 
+grid_map = np.where((grid <= 3) & 
                     (grid > 0), 1, 0)  
-grid_map = np.where((grid < 7) & 
-                    (grid > 4), 2, grid_map)                      
+grid_map = np.where((grid <= 6) & 
+                    (grid > 3), 2, grid_map)                      
 grid_map = np.where((grid > 6), 3, grid_map)    
 
 
