@@ -91,14 +91,13 @@ np.unique(grid)
 # 0 - absence       
 # 1 - plantation
 # 2 - deforestation
-# 3 - burnt
-# 4 - landcover change
-# 5 - logging
-# 6 - primary forest < 750m
-# 7 - primary forest > 750
-# 8 - regrowth
-# 9 - plantations before 2000
-# 10 - other 
+# 3 - landcover change
+# 4 - logging
+# 5 - primary forest < 750m
+# 6 - primary forest > 750
+# 7 - regrowth
+# 8 - plantations before 2000
+# 9 - other 
 
 
 gaveau_defor_path = "/homes/mv39zilo/work/Borneo/data/predictors/raw_data/Remaining_forest_in_2015_and_deforestation_1973-2015/REGIONBorneo_FCDefDeg_1973to2015_CIFOR_repro_res.tif"
@@ -147,76 +146,65 @@ grid = np.where((plantations == 1) &
                  (grid == 1), 1 , grid)
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested  == 1)&
-                 (grid == 1), 2 , grid)
-# 3 is burnt areas
-grid = np.where((plantations == 0) & 
-                 (gaveau_deforested == 0)&
-                 (burnt == 1) & 
-                 (grid == 1),3 , grid)                     
+                 (grid == 1), 2 , grid)               
                  
-# 4 cover change
+# 3 cover change
 grid = np.where((plantations == 0) & 
                 (gaveau_deforested  == 0)&
-                 (burnt == 0) & 
                  (cover_change == 1)& 
-                 (grid == 1), 4 , grid)
-# 5 logged
+                 (grid == 1), 3 , grid)
+# 4 logged
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested == 0)&
-                 (burnt == 0) & 
                  (cover_change == 0)& 
                  (gaveau_logged == 1) & 
-                 (grid == 1), 5 , grid)
-# 6 primary forest
+                 (grid == 1), 4 , grid)
+# 5 primary forest
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested == 0)&
-                 (burnt == 0) & 
                  (cover_change == 0)& 
                  (gaveau_logged == 0) & 
                  (gaveau_primary_forest == 1) &
-                 (grid == 1), 6 , grid)   
+                 (grid == 1), 5 , grid)   
                  
 # add here primary forest at high altitudes
 # because everywhere where we have primary forest 
 # we no longer have a 1 in grid but a six we do it differently   
-# 7 primary montane
+# 6 primary montane
 grid  = np.where((grid == 5) & 
-                (dem > 750), 7, grid)    
+                (dem > 750), 6, grid)    
 
 
-# 8 regrowth
+# 7 regrowth
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested == 0)&
-                 (burnt == 0) & 
                  (cover_change == 0)& 
                  (gaveau_logged == 0) & 
                  (gaveau_primary_forest == 0) &
                  (gaveau_regrowth ==1) &
-                 (grid == 1), 8 , grid)  
+                 (grid == 1), 7 , grid)  
                  
-# 9 is old plantations
+# 8 is old plantations
             
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested == 0)&
-                 (burnt == 0) & 
                  (cover_change == 0)& 
                  (gaveau_logged == 0) & 
                  (gaveau_primary_forest == 0) &
                  (gaveau_regrowth == 0) &
                  (old_plantations == 1) & 
-                 (grid == 1), 9 , grid)              
+                 (grid == 1), 8 , grid)              
                  
                  
 
-# 10 is other
+# 9 is other
 grid = np.where((plantations == 0) & 
                (gaveau_deforested == 0)&
-               (burnt == 0) & 
                (cover_change == 0)& 
                (gaveau_logged == 0) & 
                (gaveau_primary_forest == 0) &
                (gaveau_regrowth ==0) &
-               (grid == 1), 10, grid) 
+               (grid == 1), 9, grid) 
                  
 
 np.unique(grid)
@@ -225,8 +213,29 @@ mp.tiff.write_tif(file_with_srid = grid_layer_path,
                    full_output_name = "/homes/mv39zilo/work/Borneo/data/resource_use/resource_use_grid.tif",
                    data =  grid, 
                    dtype = 0)  
-                   
+       
 
+# grid map with three categories
+
+grid_map = np.where((grid < 5) & 
+                    (grid > 0), 1, 0)  
+grid_map = np.where((grid < 7) & 
+                    (grid > 4), 2, grid_map)                      
+grid_map = np.where((grid > 6), 3, grid_map)    
+
+
+# need to clip this with the area in which we have orangutans in 1999
+abundance_path = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/abundMod/testing_ae_and_absence/pipeline_results/ppln_ae75m_50-2017-02-28T18-00-52/prediction_map_" + str(year) + "_2017-02-28_repro_res.tif"
+abundance = mp.tiff.read_tif(abundance_path, 1)
+  
+  
+grid_map = np.where(abundance > 0.1, grid_map, 0)
+np.unique(grid_map)
+
+mp.tiff.write_tif(file_with_srid = grid_layer_path, 
+                   full_output_name = "/homes/mv39zilo/work/Borneo/data/resource_use/resource_use_grid_map.tif",
+                   data =  grid_map, 
+                   dtype = 0)  
 """
 # test
 indir = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/resource_use"
