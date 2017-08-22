@@ -24,20 +24,20 @@ import os
 """
 # absence 
 os.system("gdal_rasterize \
--l absence_shape_rep \
+-l absence_diss_exp \
 -burn 1 \
 -ot Float32 \
 -te -1751798.359 1267454.241  -629798.359 2560454.241 -ts 1122 1293 \
-/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_rep.shp \
-/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_rep.tif")
+/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_rep_expanded_22_08_17.shp \
+/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_rep_expanded_22_08_17.tif")
 
 os.system("gdal_rasterize \
--l absence_shape_rep \
+-l absence_shape_rep_expanded_22_08_17 \
 -burn 1 \
 -ot Float32 \
  -ts 1122 1293 \
-/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_rep.shp \
-/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_rep.tif")
+/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_rep_expanded_22_08_17.shp \
+/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_rep_expanded_22_08_17.tif")
 
 os.system("gdalwarp \
 -t_srs '+proj=aea +lat_1=7 +lat_2=-32 +lat_0=-15 +lon_0=125 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs' \
@@ -45,8 +45,8 @@ os.system("gdalwarp \
 -te -1751798.359 1267454.241 -629798.359 2560454.241 \
 -ts 1122 1293 \
 -overwrite  \
-/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_rep.tif \
-/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_repro_res.tif"
+/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_rep_expanded_22_08_17.tif \
+/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_expanded_22_08_17_repro_res.tif"
 )
 
 os.system("gdalwarp \
@@ -76,7 +76,7 @@ os.system("gdalwarp \
 
 
 
-absence_path = "/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_repro_res.tif"
+absence_path = "/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_expanded_22_08_17_repro_res.tif"
 absence = mp.tiff.read_tif(absence_path, 1)
 
 grid_layer_path = "/homes/mv39zilo/work/Borneo/data/future/grid_repro_res.tif"
@@ -115,10 +115,7 @@ plantations = mp.tiff.read_tif(plantation_path, 1)
 old_plantations_path = "/homes/mv39zilo/work/Borneo/data/predictors/raw_data/Land_cover_trajectory_before_oil-palm_and_pulpwood_establishment/raster_plantation_old_repro_res.tif"
 old_plantations = mp.tiff.read_tif(old_plantations_path, 1)
 
-# burnt areas
-burnt_areas_path = "/homes/mv39zilo/work/Borneo/data/predictors/raw_data/Scrub_ie_forest_destroyed_by_fire/REGIONBorneo_DegradedForestByDroughtAndFire_2015_CIFOR_repro_res.tif"
-burnt = mp.tiff.read_tif(burnt_areas_path, 1)
-np.unique(burnt)
+
 
 dem_path = "/homes/mv39zilo/work/Borneo/data/predictors/cleaned_data/cleaned_predictors/dem_repro_res.tif"
 dem = mp.tiff.read_tif(dem_path, 1)
@@ -140,13 +137,11 @@ grid = np.where((plantations == 0) &
 # 3 logged
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested == 0)&
-                 (cover_change == 0)& 
                  (gaveau_logged == 1) & 
                  (grid == 1), 3 , grid)
 # 4 primary forest
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested == 0)&
-                 (cover_change == 0)& 
                  (gaveau_logged == 0) & 
                  (gaveau_primary_forest == 1) &
                  (grid == 1), 4 , grid)   
@@ -162,7 +157,6 @@ grid  = np.where((grid == 4) &
 # 6 regrowth
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested == 0)&
-                 (cover_change == 0)& 
                  (gaveau_logged == 0) & 
                  (gaveau_primary_forest == 0) &
                  (gaveau_regrowth ==1) &
@@ -172,7 +166,6 @@ grid = np.where((plantations == 0) &
             
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested == 0)&
-                 (cover_change == 0)& 
                  (gaveau_logged == 0) & 
                  (gaveau_primary_forest == 0) &
                  (gaveau_regrowth == 0) &
@@ -184,7 +177,6 @@ grid = np.where((plantations == 0) &
 # 8 is other
 grid = np.where((plantations == 0) & 
                (gaveau_deforested == 0)&
-               (cover_change == 0)& 
                (gaveau_logged == 0) & 
                (gaveau_primary_forest == 0) &
                (gaveau_regrowth ==0) &
@@ -218,6 +210,7 @@ grid_map = np.where((grid > 6), 3, grid_map)
 
 
 # need to clip this with the area in which we have orangutans in 1999
+year = 1999
 abundance_path = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/abundMod/testing_ae_and_absence/pipeline_results/ppln_ae75m_50-2017-02-28T18-00-52/prediction_map_" + str(year) + "_2017-02-28_repro_res.tif"
 abundance = mp.tiff.read_tif(abundance_path, 1)
   
