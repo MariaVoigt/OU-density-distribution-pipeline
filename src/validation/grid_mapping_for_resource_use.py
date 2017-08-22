@@ -73,7 +73,7 @@ os.system("gdalwarp \
 
 """
 
-absence_path = "/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_repro_res.tif"
+absence_path = "/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_expanded_22_08_17_repro_res.tif"
 absence = mp.tiff.read_tif(absence_path, 1)
 
 # input grid with grid_ids as values
