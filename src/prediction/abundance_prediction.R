@@ -34,6 +34,9 @@ option_list <- list (
   make_option(c("-i", "--input-directory"),  dest = "input_directory",
               type = "character", help = "directory with input files",
               metavar = "/path/to/input-dir"),
+   make_option(c("--input-model"),  dest = "input_model",
+                type = "character", help = "directory with model input files",
+		             metavar = "/path/to/input-dir"),
   make_option(c("-o", "--output-directory"), dest = "output_directory",
                type = "character", help = "directory with output files",
                metavar = "/path/to/output-dir"),
@@ -99,6 +102,10 @@ if(is_verbose){print(paste("indir", indir))}
 outdir <- options$output_directory
 if(is_verbose){print(paste("outdir", outdir))}
 
+indir_model <- option$input_model
+if(is_verbose){print(paste("indir_model", indir_model))}
+
+
 year_to_predict <- as.numeric(options$year_to_predict )
 print(paste("for year to predict" , year_to_predict))
 
@@ -138,7 +145,7 @@ source(file.path(indir_fun, "project_functions/scale.predictors.R"))
 # Prepare coefficients #
 #----------------------#
 # Load coefficients and weights
-abundMod_results_path <- path.to.current(indir, "abundMod_results", "rds" )
+abundMod_results_path <- path.to.current(indir_model, "abundMod_results", "rds" )
 if(is_verbose){print(paste("this is abundMod_results_path:", abundMod_results_path))}
 abundMod_results <- readRDS(abundMod_results_path)
 # exclude the first column, which contains models, exclude the coefficient of the
