@@ -141,6 +141,10 @@ print(paste("this is ESW aerial:", ESW_aerial))
 NCS <- 1.12   #nest construction rate from Spehar et al. 2010
 PNB <- 0.88  #  proportion of nest builders from Spehar et al. 2010
 
+# alternative
+# NCS_sabah <- 1.0
+# NCS <- 1.16
+# PNB <- 0.89 # Husson 2009
 
 options("scipen" = 100, "digits" = 4)
 
