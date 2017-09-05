@@ -6,7 +6,7 @@
 
 
 # here somehow write the prefix depending on what we are testing
-JOB_NAME_PREFIX=ppln_ae4.5m_50
+JOB_NAME_PREFIX=ppln_ae75m_50
 
 INPUT_PATH='/data/idiv_kuehl/maria_data/pipeline'
 NAME=$JOB_NAME_PREFIX-$(date +%FT%H-%M-%S)
@@ -25,7 +25,7 @@ MODEL_JOB_ID_FITTING=$($QSUB \
 			   -N ${JOB_NAME_PREFIX}_fitting \
 			   $HOME/orangutan_density_distribution/src/model_fitting/submit_abundance_model.sh \
 			   -i $INPUT_PATH \
-			   --ESW-aerial 0.0045 \
+			   --ESW-aerial 0.075 \
 			   --include-aerial \
 			   --stability)
 
