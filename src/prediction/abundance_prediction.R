@@ -57,10 +57,12 @@ option_list <- list (
               default = TRUE,
               help = "don't print all intermediate results"))
 
+
 # verbose option a bit counterintuitive
 # because I make action store_false, when I say -q that
 # means that verbose == F, which is quiet
-
+print("pass checkpoint")
+option_list
 
 options <- parse_args(OptionParser(option_list=option_list))
 
@@ -102,7 +104,7 @@ if(is_verbose){print(paste("indir", indir))}
 outdir <- options$output_directory
 if(is_verbose){print(paste("outdir", outdir))}
 
-indir_model <- option$input_model
+indir_model <- options$input_model
 if(is_verbose){print(paste("indir_model", indir_model))}
 
 
@@ -113,7 +115,7 @@ print(paste("for year to predict" , year_to_predict))
 exclude_year <- as.numeric(options$exclude_year)
 if(is_verbose){print(paste("exclude year", exclude_year))}
 
-focal_change_predictor <- options$focal_change_predictor
+focal_change_predictor <- as.numeric(options$focal_change_predictor)
 if(is_verbose){print(paste("focal_change_predictor", focal_change_predictor))} 
 
 if(is_verbose){print(paste(Sys.time(), "0. start run"))}
@@ -199,12 +201,13 @@ predictors_obs_path <- path.to.current(indir,
                                        paste0("predictors_observation_scaled_",
                                               name_suffix),
                                        "rds")} else{
-predictors_obs_path <- path.to.current(indir, "predictors_observation_scaled_",
+predictors_obs_path <- path.to.current(indir_model, "predictors_observation_scaled_",
 				       "rds")}
 
 if(is_verbose){print(paste("this is predictors-obs path", predictors_obs_path))}
 
 predictors_obs <- readRDS(predictors_obs_path)
+
 
 # Scale the grid-predictors using mean and sd of predictors_obs
 
@@ -242,10 +245,12 @@ saveRDS(predictors_grid, file.path(outdir, paste0("predictors_grid_scaled_", nam
 #-------------------------------------#
 if(!is.na(focal_change_predictor)){
   # load 1999 value to add the values, but use the scaled table
-  predictors_grid_1999_path <- path.to.current(indir,
+  predictors_grid_1999_path <- path.to.current(indir_model,
                                          paste0("predictors_grid_scaled_",
                                               1999),
                                          "rds")
+
+    print(predictors_grid_1999_path)
   predictors_grid_1999 <- readRDS(  predictors_grid_1999_path)
   change_predictors <- c("year", "peatswamp",
                          "lowland_forest",
