@@ -141,7 +141,9 @@ print(paste("this is ESW aerial:", ESW_aerial))
 NCS <- 1.12   #nest construction rate from Spehar et al. 2010
 #NCS <- 1.18 # from Husson 2009
 PNB <- 0.88  #  proportion of nest builders from Spehar et al. 2010
-#PNB <- 0.89
+                                        #PNB <- 0.89 # from husson 2009
+# there is also a NCS for lower Kinabatangan, but not sure, where this is exactly
+
 
 options("scipen" = 100, "digits" = 4)
 
