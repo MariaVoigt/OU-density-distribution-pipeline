@@ -217,12 +217,6 @@ predictor_names_for_scaling <- c( "dem",
                                  "plantation_distance",
                                  "pulp_distance",
                                  "palm_distance",
-                                 "plantation_age",
-                                 "plantation_cover",
-                                 "IOPP_age",
-                                 "IOPP_cover",
-                                 "ITP_age",
-                                 "ITP_cover",
                                  "dom_T_OC",
                                  "dom_T_PH")
 
