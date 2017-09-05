@@ -14,7 +14,7 @@ import scala.collection.mutable.{ Map => MMap }
 import scala.io.Source
 
 @main
-def main(input: Path, output: Path, mapping: Path, years: Seq[Int] = 1999 to 2015, threshold: Double = 0.1, bufSize: Int = 4194304) = {
+def main(input: Path, output: Path, mapping: Path, years: Seq[Int] = 1999 to 2015, threshold: Double = 0, bufSize: Int = 4194304) = {
 
   // --- grid id to category mapping
 
