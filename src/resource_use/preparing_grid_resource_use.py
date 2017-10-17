@@ -202,26 +202,57 @@ mp.tiff.write_tif(file_with_srid = grid_layer_path,
 # 7 - plantations before 2000 - 3
 # 8 - other                   - 3
 
-grid_map = np.where((grid <= 3) & 
+grid_map = np.where((grid <= 2) & 
                     (grid > 0), 1, 0)  
+grid_map = np.where((grid <= 3) & 
+                    (grid > 2), 2, grid_map)                      
 grid_map = np.where((grid <= 6) & 
-                    (grid > 3), 2, grid_map)                      
-grid_map = np.where((grid > 6), 3, grid_map)    
-
-
+                    (grid > 3), 3, grid_map)    
+grid_map = np.where((grid <= 8) & 
+                    (grid > 6), 4, grid_map)    
 # need to clip this with the area in which we have orangutans in 1999
 year = 1999
 abundance_path = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/abundMod/testing_ae_and_absence/pipeline_results/ppln_ae75m_50-2017-02-28T18-00-52/prediction_map_" + str(year) + "_2017-02-28_repro_res.tif"
 abundance = mp.tiff.read_tif(abundance_path, 1)
   
-  
-grid_map = np.where(abundance > 0.1, grid_map, 0)
+
+#grid_map = np.where(abundance > 0.000001, grid_map, 0)
 np.unique(grid_map)
 
 mp.tiff.write_tif(file_with_srid = grid_layer_path, 
                    full_output_name = "/homes/mv39zilo/work/Borneo/data/resource_use/resource_use_grid_map.tif",
                    data =  grid_map, 
                    dtype = 0)  
+                   
+# ignite talk map
+   
+pop_path = "/homes/mv39zilo/work/Borneo/data/populations_phva/meta_kalsarsab_20002015_diss_repro_res.tif"
+pop = mp.tiff.read_tif(pop_path, 1)       
+          
+
+grid_map = np.where((grid <= 3) & 
+                    (grid > 0), 1, 0)                
+grid_map = np.where((grid <= 5) & 
+                    (grid > 3), 2, grid_map)    
+grid_map = np.where((grid <= 8) & 
+                    (grid > 6), 3, grid_map)    
+# need to clip this with the area in which we have orangutans in 1999
+year = 1999
+abundance_path = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/abundMod/testing_ae_and_absence/pipeline_results/ppln_ae75m_50-2017-02-28T18-00-52/prediction_map_" + str(year) + "_2017-02-28_repro_res.tif"
+abundance = mp.tiff.read_tif(abundance_path, 1)
+  
+
+grid_map = np.where(pop>0, grid_map, 0)
+grid_map = np.where(abundance > 0.001, grid_map, 0)
+np.unique(grid_map)
+
+mp.tiff.write_tif(file_with_srid = grid_layer_path, 
+                   full_output_name = "/homes/mv39zilo/work/Borneo/data/resource_use/resource_use_grid_map_ignite.tif",
+                   data =  grid_map, 
+                   dtype = 0)                 
+                   
+                   
+                   
 """
 # test
 indir = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/resource_use"
