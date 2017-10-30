@@ -186,7 +186,9 @@ mp.tiff.write_tif(file_with_srid = grid_layer_path,
                    full_output_name = "/homes/mv39zilo/work/Borneo/data/resource_use/resource_use_grid.tif",
                    data =  grid, 
                    dtype = 0)  
-       
+                   
+                   
+# continue with resource_use_table_no_protected_country_split.py
 
 # grid map with four categories
 # 0 - absence                 - 0
