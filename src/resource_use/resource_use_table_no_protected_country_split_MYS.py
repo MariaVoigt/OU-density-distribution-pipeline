@@ -908,3 +908,9 @@ affected.write( "logging" +  "," + "SAW" + "," +
 
 affected.close()
 
+# script to make this into figure
+# /homes/mv39zilo/projects/orangutan_density_distribution/src/resource_use/resource_use_overlap_plots.R
+
+# NOTE
+# for script to prepare bootstrap:
+# validation/grid_mapping_for_resource_use.py
