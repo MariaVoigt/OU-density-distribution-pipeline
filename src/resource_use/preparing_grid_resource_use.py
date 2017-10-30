@@ -83,7 +83,7 @@ grid_layer_path = "/homes/mv39zilo/work/Borneo/data/future/grid_repro_res.tif"
 grid = mp.tiff.read_tif(grid_layer_path, 1)
 
 
-grid = np.where(absence == 0, grid, 0)    
+#grid = np.where(absence == 0, grid, 0)    
 np.unique(grid)
 
 
