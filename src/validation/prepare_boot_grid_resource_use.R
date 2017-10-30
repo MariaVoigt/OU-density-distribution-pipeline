@@ -20,20 +20,22 @@ resource_use_grid <- as.data.frame(resource_use)
 names(resource_use_grid) <- "category"
 resource_use_grid$category <- as.character(resource_use_grid$category)
 resource_use_grid$population <- as.numeric(substr(resource_use_grid$category, start= 1, stop = 1))
-resource_use_grid$country <- as.numeric(substr(resource_use_grid$category, start= 2, stop = 2))
-resource_use_grid$province <- as.numeric(substr(resource_use_grid$category, start= 3, stop = 4))
+resource_use_grid$country <- as.character(substr(resource_use_grid$category, start= 2, stop = 2))
+resource_use_grid$province <- as.character(substr(resource_use_grid$category, start= 3, stop = 4))
 resource_use_grid$resource_use <- as.numeric(substr(resource_use_grid$category, start= 5, stop =5))
 resource_use_grid$grid_id <- as.numeric(substr(resource_use_grid$category, start= 6, stop = nchar(resource_use_grid$category[1])))
 
 summary(resource_use_grid)
 
-resource_use_grid[resource_use_grid$country == 3, "country"] <- "MYS"
-resource_use_grid[resource_use_grid$country == 6, "country"] <- "IDN"
+resource_use_grid[resource_use_grid$country == "3", "country"] <- "MYS"
+resource_use_grid[resource_use_grid$country == "6", "country"] <- "IDN"
 
 # for now not distinguishing Kalimantan
-resource_use_grid[resource_use_grid$country == 6, "province"] <- "KAL"
-resource_use_grid[resource_use_grid$province == 10, "province"] <- "SAB"
-resource_use_grid[resource_use_grid$province == 11, "province"] <- "SAW"
+
+resource_use_grid[resource_use_grid$country == "IDN", "province"] <- "KAL"
+resource_use_grid[resource_use_grid$province == "10", "province"] <- "SAB"
+resource_use_grid[resource_use_grid$province == "11", "province"] <- "SAW"
+resource_use_grid[!resource_use_grid$province %in% c("KAL", "SAB", "SAW"), "province"] <- NA
 
 summary(resource_use_grid)
 plot(table(resource_use_grid$resource_use))
@@ -55,11 +57,11 @@ resource_use_grid[resource_use_grid$resource_use == 0 &
                     !is.na(resource_use_grid$resource_use), "resource_use"] <- NA
 
 resource_use_grid <- resource_use_grid %>%
-  dplyr::select(resource_use, country,  grid_id)
+  dplyr::select(resource_use, country, province, grid_id)
 
 # SORT WITH GRID ID
 resource_use_grid <- resource_use_grid %>%
-  dplyr::select( resource_use, country, grid_id) %>%
+  dplyr::select( resource_use, country, province, grid_id) %>%
   arrange(grid_id) %>%
   filter(grid_id != 0)
 
@@ -71,12 +73,15 @@ grid_ids <- resource_use_grid[resource_use_grid$grid_id != 0, "grid_id"]
 grid_ids_missing <- geography_2015$grid_id[!geography_2015$grid_id %in% grid_ids]
 grid_ids_missing <- as.data.frame(cbind(rep(NA, times = length(grid_ids_missing)),
                                         rep(NA, times = length(grid_ids_missing)),
+                                        rep(NA, times = length(grid_ids_missing)),
                                         grid_ids_missing))
-names(grid_ids_missing) <- c("resource_use", "country", "grid_id")
+names(grid_ids_missing) <- c("resource_use", "country", "province", "grid_id")
 
 resource_use_grid <- resource_use_grid %>%
   rbind(grid_ids_missing) %>%
   arrange(grid_id)
+
+# into the resource_use_we fill a mix of the province and resource use
 
 resource_use_grid[!is.na(resource_use_grid$resource_use) &
                     resource_use_grid$country != 0, "category"] <-
@@ -84,7 +89,7 @@ resource_use_grid[!is.na(resource_use_grid$resource_use) &
                               resource_use_grid$country != 0, "resource_use"],
           "_",
           resource_use_grid[!is.na(resource_use_grid$resource_use)&
-                              resource_use_grid$country != 0, "country"])
+                              resource_use_grid$country != 0, "province"])
 resource_use_grid$category <- as.factor(resource_use_grid$category)
 summary(resource_use_grid)
 unique(resource_use_grid$category)
@@ -92,3 +97,5 @@ resource_use_grid <- dplyr::select(resource_use_grid, category,
                                    resource_use, country, grid_id)
 
 write.csv(resource_use_grid, file.path(outdir, "resource_use_grid.csv" ), row.names = F)
+
+#  I called the old one manually resource_use_grid_country_old.csv
