@@ -73,12 +73,6 @@ os.system("gdalwarp \
 """
 
 
-
-
-
-absence_path = "/homes/mv39zilo/work/Borneo/data/response/cleaned_data/absence_shape/absence_shape_expanded_22_08_17_repro_res.tif"
-absence = mp.tiff.read_tif(absence_path, 1)
-
 grid_layer_path = "/homes/mv39zilo/work/Borneo/data/future/grid_repro_res.tif"
 grid = mp.tiff.read_tif(grid_layer_path, 1)
 
@@ -128,8 +122,11 @@ dem = mp.tiff.read_tif(dem_path, 1)
 # we can save some computing time by only considering
 # the grid and not everything, because abundance will only be
 # in rid
+# 1 plantations
 grid = np.where((plantations == 1) & 
                  (grid == 1), 1 , grid)
+                 
+# 2 deforestation
 grid = np.where((plantations == 0) & 
                  (gaveau_deforested  == 1)&
                  (grid == 1), 2 , grid)               
@@ -202,56 +199,98 @@ mp.tiff.write_tif(file_with_srid = grid_layer_path,
 # 7 - plantations before 2000 - 3
 # 8 - other                   - 3
 
-grid_map = np.where((grid <= 2) & 
-                    (grid > 0), 1, 0)  
 grid_map = np.where((grid <= 3) & 
-                    (grid > 2), 2, grid_map)                      
-grid_map = np.where((grid <= 6) & 
-                    (grid > 3), 3, grid_map)    
-grid_map = np.where((grid <= 8) & 
-                    (grid > 6), 4, grid_map)    
-# need to clip this with the area in which we have orangutans in 1999
+                    (grid > 0), 1, 0)  
+grid_map = np.where((grid <= 5) & 
+                    (grid > 3), 2, grid_map)                      
+grid_map = np.where(((grid <= 8) & 
+                     (grid > 6)), 3, grid_map)    
+
+# need to clip this with the area in which we have orangutans in 1999 + and populations
+                    
+                    
 year = 1999
 abundance_path = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/abundMod/testing_ae_and_absence/pipeline_results/ppln_ae75m_50-2017-02-28T18-00-52/prediction_map_" + str(year) + "_2017-02-28_repro_res.tif"
 abundance = mp.tiff.read_tif(abundance_path, 1)
-  
 
-#grid_map = np.where(abundance > 0.000001, grid_map, 0)
+populations = mp.tiff.read_tif("/homes/mv39zilo/work/Borneo/data/populations_phva/meta_kalsarsab_20002015_diss_no_reintro_repro_res.tif", 1)
+  
+# decision to include all areas where populations
+grid_map = np.where((#(abundance > 0.00001) &
+                     (populations != 0)), grid_map, 0)
+
 np.unique(grid_map)
 
 mp.tiff.write_tif(file_with_srid = grid_layer_path, 
-                   full_output_name = "/homes/mv39zilo/work/Borneo/data/resource_use/resource_use_grid_map.tif",
+                   full_output_name = "/homes/mv39zilo/work/Borneo/data/resource_use/resource_use_grid_map_for_draft.tif",
                    data =  grid_map, 
                    dtype = 0)  
+      
+
+# alternative
+# grid map with five categories
+# 0 - absence                 - 0
+# 1 - plantation              - 1
+# 2 - deforestation           - 1
+# 3 - logging                 - 2
+# 4 - primary forest < 750m   - 3
+# 5 - primary forest > 750    - 3
+# 6 - regrowth                - 3
+# 7 - plantations before 2000 - 4
+# 8 - other                   - 4
+ 
+
+grid_map_2 = np.where((grid <= 2) & 
+                    (grid > 0), 1, 0)  
+grid_map_2 = np.where((grid == 3), 2, grid_map_2)                       
+grid_map_2 = np.where((grid <= 6) & 
+                    (grid > 3), 3, grid_map_2)                      
+grid_map_2 = np.where((grid <= 8) & 
+                    (grid > 6), 4, grid_map_2)    
+
+grid_map_2 = np.where((#(abundance > 0.00001) &
+                     (populations != 0)), grid_map_2, 0)
+np.unique(grid_map_2)
+
+mp.tiff.write_tif(file_with_srid = grid_layer_path, 
+                   full_output_name = "/homes/mv39zilo/work/Borneo/data/resource_use/resource_use_grid_map_for_draft_logging_extra.tif",
+                   data =  grid_map_2, 
+                   dtype = 0)  
                    
+                    
 # ignite talk map
-   
 pop_path = "/homes/mv39zilo/work/Borneo/data/populations_phva/meta_kalsarsab_20002015_diss_repro_res.tif"
 pop = mp.tiff.read_tif(pop_path, 1)       
           
 
-grid_map = np.where((grid <= 3) & 
+grid_map_ignite = np.where((grid <= 3) & 
                     (grid > 0), 1, 0)                
-grid_map = np.where((grid <= 5) & 
-                    (grid > 3), 2, grid_map)    
-grid_map = np.where((grid <= 8) & 
-                    (grid > 6), 3, grid_map)    
+grid_map_ignite = np.where((grid <= 5) & 
+                    (grid > 3), 2, grid_map_ignite)    
+grid_map_ignite = np.where((grid <= 8) & 
+                    (grid > 6), 3, grid_map_ignite)    
+                    
+                    
+                    
+                    
+        
 # need to clip this with the area in which we have orangutans in 1999
 year = 1999
 abundance_path = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/abundMod/testing_ae_and_absence/pipeline_results/ppln_ae75m_50-2017-02-28T18-00-52/prediction_map_" + str(year) + "_2017-02-28_repro_res.tif"
 abundance = mp.tiff.read_tif(abundance_path, 1)
   
 
-grid_map = np.where(pop>0, grid_map, 0)
-grid_map = np.where(abundance > 0.001, grid_map, 0)
-np.unique(grid_map)
+grid_map_ignite = np.where(pop>0, grid_map_ignite, 0)
+grid_map_ignite = np.where(abundance > 0.001, grid_map_ignite, 0)
+np.unique(grid_map_ignite)
 
 mp.tiff.write_tif(file_with_srid = grid_layer_path, 
                    full_output_name = "/homes/mv39zilo/work/Borneo/data/resource_use/resource_use_grid_map_ignite.tif",
-                   data =  grid_map, 
+                   data =  grid_map_ignite, 
                    dtype = 0)                 
                    
-                   
+      
+                  
                    
 """
 # test
