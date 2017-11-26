@@ -622,18 +622,46 @@ abundance_data = mp.tiff.read_tif(abundance_path, 1)
 
 resource_use = mp.tiff.read_tif(grid_layer_path, 1)
 
-abundance_data = np.where(absence == 0, abundance_data, 0)
-#abundance_data = np.where(abundance_data > 0.1, abundance_data, 0)
+abundance_data = np.where(populations != 0, abundance_data, 0)
+
 
 # there are some pixels in the outside shape of borneo,
 # where we have abundance but no grid, this we will clip
-abundance_data = np.where((resource_use == 0) &
-                           (abundance_data > 0), 0, abundance_data)
+
                                                
-abundance_data_MYS = np.where(borneo == 136, abundance_data, 0 )
+#abundance_data_MYS = np.where(borneo == 136, abundance_data, 0 )
 abundance_data_SAB = np.where(borneo_province == 10, abundance_data, 0 )
 abundance_data_SAW = np.where(borneo_province == 11, abundance_data, 0 )
 abundance_data_IDN = np.where(borneo == 106, abundance_data, 0 )
+
+
+
+# checks
+"""
+mp.tiff.write_tif(file_with_srid = grid_layer_path, 
+                   full_output_name = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/resource_use/SAB.tif",
+                   data =  abundance_data_SAB , 
+                   dtype = 4)
+                   
+mp.tiff.write_tif(file_with_srid = grid_layer_path, 
+                   full_output_name = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/resource_use/SAW.tif",
+                   data =  abundance_data_SAW , 
+                   dtype = 4)          
+                 
+mp.tiff.write_tif(file_with_srid = grid_layer_path, 
+                   full_output_name = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/resource_use/Kal.tif",
+                   data =  abundance_data_IDN , 
+                   dtype = 4)  
+                   
+"""
+np.sum(abundance_data) - (np.sum(abundance_data_SAB) + np.sum(abundance_data_SAW) + np.sum(abundance_data_IDN) )
+# 39 individuals in the whole abundance_data that are not in the part
+# so I need to get rid of those, otherwise slight inaccuracy
+
+abundance_data = abundance_data_IDN + abundance_data_SAB + abundance_data_SAW
+
+np.sum(abundance_data) - (np.sum(abundance_data_SAB) + np.sum(abundance_data_SAW) + np.sum(abundance_data_IDN) )
+
 
                    
 file_path_table_affected = "/homes/mv39zilo/work/Borneo/analysis/model_prep_and_running/results/resource_use/OU_area_affected_" + str(year) + ".csv"
@@ -644,6 +672,10 @@ affected.write("type, country, ou_affected, perc_ou_affected, area_affected, per
 
 # IT DOESNT MAKE A DIFFERENCE IF INCLUDING ONLY LARGER THAN 0.1
 
+# check different approaches to count > 0 pixels
+np.sum(total_ae_SAW)
+np.count_nonzero(abundance_data_SAW)
+
 # how many OU have been affected
 
 gone_ou_all = np.where(#(abundance_data > 0.1) & 
@@ -653,8 +685,7 @@ gone_ou_all = np.where(#(abundance_data > 0.1) &
                 
  # # how much "area" was affected
 total_ae = np.where(abundance_data > 0, 1, 0)
-gone_ae_all = np.where(
-              #  (abundance_data > 0.1) & 
+gone_ae_all = np.where( (total_ae == 1) & 
                 ((resource_use == 1) | 
                 (resource_use == 2) |
                 (resource_use == 3)), 1, 0)
@@ -665,13 +696,13 @@ str(np.sum(gone_ou_all)*100/np.sum(abundance_data)) + "," +
 str(np.sum(gone_ae_all) * 0.0001) + "," + str(np.sum(gone_ae_all)*100/ np.sum(total_ae)) + "\n")
  
 # how many OU have been affected
-gone_ou_defor = np.where(#(abundance_data > 0.1) & 
+gone_ou_defor = np.where(
                 ((resource_use == 1) | 
                 (resource_use == 2) ), abundance_data, 0)
                 
  # # how much "area" was affected
 gone_ae_defor = np.where(
-               # (abundance_data > 0.1) & 
+(total_ae == 1) & 
                ((resource_use == 1) | 
                 (resource_use == 2) ), 1, 0)
 
@@ -684,10 +715,8 @@ affected.write( "cover_change" +  "," + "borneo" + "," +
  
  
                 
-gone_ou_logging = np.where(#(abundance_data > 0.1) & 
-                               (resource_use == 3), abundance_data, 0)
-gone_ae_logging = np.where(#(abundance_data > 0.1) &
-                               (resource_use == 3), 1, 0)
+gone_ou_logging = np.where((resource_use == 3), abundance_data, 0)
+gone_ae_logging = np.where((total_ae == 1) & (resource_use == 3), 1, 0)
 
 
 affected.write( "logging" +  "," + "borneo" + "," + 
@@ -697,7 +726,7 @@ affected.write( "logging" +  "," + "borneo" + "," +
  str(np.sum(gone_ae_logging)*100/ np.sum(total_ae))+ "\n")
  
  
-gone_ou_IDN_all = np.where(#(abundance_data_IDN > 0.1) & 
+gone_ou_IDN_all = np.where(
                 ((resource_use_IDN == 1) | 
                 (resource_use_IDN == 2) |
                 (resource_use_IDN == 3)), abundance_data_IDN, 0)
@@ -705,7 +734,7 @@ gone_ou_IDN_all = np.where(#(abundance_data_IDN > 0.1) &
  # # how much "area" was affected
 total_ae_IDN = np.where(abundance_data_IDN > 0, 1, 0)
 gone_ae_IDN_all = np.where(
-              #  (abundance_data_IDN > 0.1) & 
+                 (total_ae_IDN == 1) & 
                 ((resource_use_IDN == 1) | 
                 (resource_use_IDN == 2) |
                 (resource_use_IDN == 3)), 1, 0)
@@ -722,7 +751,7 @@ gone_ou_IDN_defor = np.where(#(abundance_data_IDN > 0.1) &
                 
  # # how much "area" was affected
 gone_ae_IDN_defor = np.where(
-               # (abundance_data_IDN > 0.1) & 
+                 (total_ae_IDN == 1) & 
                ((resource_use_IDN == 1) | 
                 (resource_use_IDN == 2) ), 1, 0)
 
@@ -735,9 +764,9 @@ affected.write( "cover_change" +  "," + "IDN" + "," +
  
  
                 
-gone_ou_IDN_logging = np.where(#(abundance_data_IDN > 0.1) & 
+gone_ou_IDN_logging = np.where(
                                (resource_use_IDN == 3), abundance_data_IDN, 0)
-gone_ae_IDN_logging = np.where(#(abundance_data_IDN > 0.1) &
+gone_ae_IDN_logging = np.where((total_ae_IDN == 1) & 
                                (resource_use_IDN == 3), 1, 0)
 
 
@@ -747,7 +776,7 @@ affected.write( "logging" +  "," + "IDN" + "," +
  str(np.sum(gone_ae_IDN_logging)* 0.0001) + "," +
  str(np.sum(gone_ae_IDN_logging)*100/ np.sum(total_ae_IDN))+ "\n")
  
-                
+"""
 gone_ou_MYS_all = np.where(#(abundance_data_MYS > 0.1) & 
                 ((resource_use_MYS == 1) | 
                 (resource_use_MYS == 2) |
@@ -799,20 +828,26 @@ affected.write( "logging" +  "," + "MYS" + "," +
  str(np.sum(gone_ae_MYS_logging) * 0.0001) + "," +
  str(np.sum(gone_ae_MYS_logging)*100/ np.sum(total_ae_MYS)) + "\n")    
 
+"""
+
 # SAB
 
-gone_ou_SAB_all = np.where(#(abundance_data_SAB > 0.1) & 
+gone_ou_SAB_all = np.where(
                 ((resource_use_SAB == 1) | 
                 (resource_use_SAB == 2) |
                 (resource_use_SAB == 3)), abundance_data_SAB, 0)
                 
  # # how much "area" was affected
 total_ae_SAB = np.where(abundance_data_SAB > 0, 1, 0)
+
+                   
 gone_ae_SAB_all = np.where(
-               # (abundance_data_SAB > 0.1) & 
+                 (total_ae_SAB == 1) & 
                 ((resource_use_SAB == 1) | 
                 (resource_use_SAB == 2) |
-                (resource_use_SAB == 3)), 1, 0)
+                (resource_use_SAB == 3) ), 1, 0)         
+                
+
 
 affected.write( "all" +  "," + "SAB" + "," + 
  str(np.sum(gone_ou_SAB_all) ) + "," +
@@ -821,13 +856,13 @@ affected.write( "all" +  "," + "SAB" + "," +
  str(np.sum(gone_ae_SAB_all)*100/ np.sum(total_ae_SAB)) + "\n")
  
 # how many OU have been affected
-gone_ou_SAB_defor = np.where(#(abundance_data_SAB > 0.1) & 
+gone_ou_SAB_defor = np.where(
                 ((resource_use_SAB == 1) | 
                 (resource_use_SAB == 2)), abundance_data_SAB, 0)
                 
  # # how much "area" was affected
 gone_ae_SAB_defor = np.where(
-               # (abundance_data_SAB > 0.1) & 
+                 (total_ae_SAB == 1) & 
                ((resource_use_SAB == 1) | 
                 (resource_use_SAB == 2)), 1, 0)
 
@@ -840,9 +875,8 @@ affected.write( "cover_change" +  "," + "SAB" + "," +
  
  
                 
-gone_ou_SAB_logging = np.where(#(abundance_data_SAB > 0.1) & 
-                               (resource_use_SAB == 3), abundance_data_SAB, 0)
-gone_ae_SAB_logging = np.where(#(abundance_data_SAB > 0.1) &
+gone_ou_SAB_logging = np.where( (resource_use_SAB == 3), abundance_data_SAB, 0)
+gone_ae_SAB_logging = np.where( (total_ae_SAB == 1) & 
                                (resource_use_SAB == 3), 1, 0)
 
 
@@ -852,18 +886,24 @@ affected.write( "logging" +  "," + "SAB" + "," +
  str(np.sum(gone_ae_SAB_logging) * 0.0001) + "," +
  str(np.sum(gone_ae_SAB_logging)*100/ np.sum(total_ae_SAB)) + "\n")    
 
-gone_ou_SAW_all = np.where(#(abundance_data_SAW > 0.1) & 
+gone_ou_SAW_all = np.where(
                 ((resource_use_SAW == 1) | 
                 (resource_use_SAW == 2) |
                 (resource_use_SAW == 3)), abundance_data_SAW, 0)
                 
  # # how much "area" was affected
 total_ae_SAW = np.where(abundance_data_SAW > 0, 1, 0)
+
+
+
 gone_ae_SAW_all = np.where(
-               # (abundance_data_SAW > 0.1) & 
+               (total_ae_SAW == 1) & 
                 ((resource_use_SAW == 1) | 
                 (resource_use_SAW == 2) |
                 (resource_use_SAW == 3)), 1, 0)
+                
+                
+
 
 affected.write( "all" +  "," + "SAW" + "," + 
  str(np.sum(gone_ou_SAW_all) ) + "," +
@@ -872,13 +912,13 @@ affected.write( "all" +  "," + "SAW" + "," +
  str(np.sum(gone_ae_SAW_all)*100/ np.sum(total_ae_SAW)) + "\n")
  
 # how many OU have been affected
-gone_ou_SAW_defor = np.where(#(abundance_data_SAW > 0.1) & 
+gone_ou_SAW_defor = np.where(
                 ((resource_use_SAW == 1) | 
                 (resource_use_SAW == 2)), abundance_data_SAW, 0)
                 
  # # how much "area" was affected
 gone_ae_SAW_defor = np.where(
-               # (abundance_data_SAW > 0.1) & 
+                (total_ae_SAW == 1) & 
                ((resource_use_SAW == 1) | 
                 (resource_use_SAW == 2)), 1, 0)
 
@@ -891,9 +931,8 @@ affected.write( "cover_change" +  "," + "SAW" + "," +
  
  
                 
-gone_ou_SAW_logging = np.where(#(abundance_data_SAW > 0.1) & 
-                               (resource_use_SAW == 3), abundance_data_SAW, 0)
-gone_ae_SAW_logging = np.where(#(abundance_data_SAW > 0.1) &
+gone_ou_SAW_logging = np.where((resource_use_SAW == 3), abundance_data_SAW, 0)
+gone_ae_SAW_logging = np.where((total_ae_SAW == 1) & 
                                (resource_use_SAW == 3), 1, 0)
 
 
