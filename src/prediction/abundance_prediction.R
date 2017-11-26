@@ -116,7 +116,7 @@ exclude_year <- as.numeric(options$exclude_year)
 if(is_verbose){print(paste("exclude year", exclude_year))}
 
 focal_change_predictor <- as.numeric(options$focal_change_predictor)
-if(is_verbose){print(paste("focal_change_predictor", focal_change_predictor))} 
+if(is_verbose){print(paste("focal_change_predictor", focal_change_predictor))}
 
 if(is_verbose){print(paste(Sys.time(), "0. start run"))}
 #------------------------#
@@ -162,17 +162,9 @@ coeffs[is.na(coeffs) == T] <- 0
 
 # Load estimates for observation and grid
 # these are the predictors that will be used in the prediction
-# THEY MUST BE IN THE ORDER IN WHICH THEY APPEAR IN THE COEFFICIENTS
-# CODE THIS
 # here only separate after first _
 predictor_names_coeffs <- gsub("coeff_","", names(coeffs))
-#UNDERSTAND HERE WHAT IS HAPPENING
-#interaction_terms_names <- predictor_names_coeffs[predictor_names_coeffs %in%
-#                           paste0("year:", predictor_names_coeffs)]
-#interaction_terms_names <- gsub("year:", "", interaction_terms_names)
-#quadratic_terms_names <- predictor_names_coeffs[predictor_names_coeffs %in%
-#                                                 paste0("I(", predictor_names_coeffs, "^2)")]
-#quadratic_terms_names <- gsub("I\\(|\\^2\\)", "", quadratic_terms_names )
+
 
 quadratic_terms_names <- c("rain_dry")
 predictor_names_coeffs <- predictor_names_coeffs[predictor_names_coeffs != "(Intercept)"]
@@ -287,7 +279,6 @@ names(predictor_estimates) <- c("intercept", predictor_names,
 
 if(is_verbose){print(paste("1. start pred_per_cell", Sys.time()))}
 pred_per_cell <- foreach(i = 1:nrow(predictor_estimates), .combine = c)  %dopar% {
-  # pred_per_cell <- foreach(i = 1:100, .combine = c)  %dopar% {
   t_predictor_estimates <- t( predictor_estimates[i, ])
   pred_estimates_wcoeffs  <- data.frame(mapply(`*`, coeffs, t_predictor_estimates, SIMPLIFY = F))
   pred_estimates_sum <- apply(pred_estimates_wcoeffs, 1, sum)
